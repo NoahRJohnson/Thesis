@@ -1,0 +1,10 @@
+# Generated
+*.aux
+
+*.log
+*.gz
+*.lof
+*.lot
+*.toc
+
+
