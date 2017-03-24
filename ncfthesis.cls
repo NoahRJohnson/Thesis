@@ -11,17 +11,16 @@
 % `vi' and `upcase' options by Krishna Sethuraman - krishna@athena.mit.edu
 % Margins and heading types by Peter Nuth  - nuth@ai.mit.edu
 % Title and abstract page by Stephen Gildea - gildea@erl.mit.edu
-% Look in this directory for example file mitthesis.doc
 
 % To use this style - say something like:
 %  for dull, boring thesis format:
-%	\documentclass[12pt]{mitthesis}
+%	\documentclass[12pt]{ncfthesis}
 %       \pagestyle{plain}
 % OR for fast drafts: 
-%	\documentclass[11pt,singlespace,draft]{mitthesis}
+%	\documentclass[11pt,singlespace,draft]{ncfthesis}
 %	\pagestyle{drafthead}
 % OR for Tech Reports:
-%	\documentclass[12pt,twoside]{mitthesis}	
+%	\documentclass[12pt,twoside]{ncfthesis}	
 %	\pagestyle{headings}
 % OR
 %  some other combination...
@@ -30,8 +29,7 @@
 % 
 % Option `twoside':
 %   Good for producing Tech Reports.
-%   The default is single-sided printing, which is what M.I.T. wants on the
-%   thesis document itself.
+%   The default is single-sided printing.
 %
 % Option `singlespace':
 %   Good for drafts.
@@ -55,16 +53,13 @@
 % 	\prevdegrees{B.S., University of California (1978) \\
 %		     S.M., Massachusetts Institute of Technology (1981)}
 % 	\division{Division of Natural Sciences}
-% 	\degree{Doctor of Philosophy}
+% 	\degree{Bachelor of Arts in Philosophy}
 %% If the thesis is for two degrees simultaneously, list them both
 %% separated by \and like this:
-% 	\degree{Doctor of Philosophy \and Master of Science}
+% 	\degree{Bachelor of Arts in Philosophy \and Bachelor of Arts in Mathematics}
 % 	\degreemonth{February}
 % 	\degreeyear{1987}
 % 	\thesisdate{December 10, 1986}
-%% If the thesis is copyright by the Institute, leave this line out and
-%% the standard copyright line will be used instead.
-% 	\copyrightnotice{J. Casey Salas, 1986}
 % 	\sponsor{John Doe and Jane Pane}
 %% Make the titlepage based on the above information.  If you need
 %% something special and can't use the standard form, you can specify
@@ -355,7 +350,7 @@ Sarasota, Florida
 % this environment should probably be called abstract,
 % but we want people to also be able to get at the more
 % basic abstract environment
-\def\abstractpage{\cleardoublepage
+\def\abstractpage{\clearpage
 \begin{center}{\large{\bf \@title} \\
 by \\
 \@author \\[\baselineskip]}
@@ -372,7 +367,9 @@ requirements for the \@degreeword\ of \\
 %% Changed from \unvbox to \unvcopy for use with multiple copies of abstract
 %% page.
 %% Krishna Sethuraman (1990)
-\def\endabstractpage{\end{abstract}\noindent
+\def\endabstractpage{\end{abstract}
+\addcontentsline{toc}{section}{Abstract}
+\noindent
 \par
 \signature{\@sponsor}{\@thesisdate} \newpage}
 
