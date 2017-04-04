@@ -1,6 +1,7 @@
 # Generated
 *.aux
-
+*.bbl
+*.blg
 *.log
 *.gz
 *.lof

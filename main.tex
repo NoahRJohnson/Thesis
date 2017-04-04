@@ -24,14 +24,18 @@
 
 \documentclass[12pt,twoside]{ncfthesis}
 \usepackage{lgrind}
+\usepackage[fleqn]{mathtools}
+\usepackage{amsmath}
 %% These have been added at the request of the MIT Libraries, because
 %% some PDF conversions mess up the ligatures.  -LB, 1/22/2014
 \usepackage{cmap}
 \usepackage[T1]{fontenc}
 \pagestyle{plain}
 
-\begin{document}
 
+
+
+\begin{document}
 \include{title}
 
 \pagenumbering{roman}
@@ -48,6 +52,7 @@
 %\appendix
 %\include{appa}
 %\include{appb}
-%\include{biblio}
+\addcontentsline{toc}{chapter}{Bibliography}
+\include{biblio}
 \end{document}
 
