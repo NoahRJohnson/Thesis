@@ -3,9 +3,9 @@
 
 \section{Probability Background}
 Discrete random variables have a finite output space of possible values that may be observed. Let X be a random variable, then we define the probability that we observe value x from X as \( p(X = x) \equiv p(x)\). Since x is arbitrary, this defines a probability distribution. For every random variable X, we have
-\begin{equation}
+\begin{equation*}
 \sum\limits_{x \in X} p(x) = 1
-\end{equation}
+\end{equation*}
 Given two more random variables Y and Z, we'll define the joint distribution \(p(X=x\ \textrm{and}\ Y=y\ \textrm{and}\ Z=z) \equiv p(x,y,z)\), and the conditional probability \(p(X=x\ \textrm{given that}\ Y=y\ \textrm{and}\ Z=z) \equiv p(x \mathbin{\vert} y,z)\). The conditional probability is defined to be
 \begin{equation} \label{eqCondProb}
 p(x \mathbin{\vert} y,z) = \frac{p(x,y,z)}{p(y,z)}
@@ -37,27 +37,27 @@ bel(x_t) = p(x_t \mathbin{\vert} z_{1:t}, u_{1:t})
 \subsection{Derivation}
 
 We can use equation \ref{eqBayesThm} to rewrite \(bel(x_t)\):
-\begin{equation}
+\begin{equation*}
 bel(x_t) = p(x_t \mathbin{\vert} z_{1:t}, u_{1:t}) = \frac{p(z_t \mathbin{\vert} x_t, z_{1:t-1}, u_{1:t})p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})}{p(z_t \mathbin{\vert} z_{1:t-1}, u_{1:t})}
-\end{equation}
+\end{equation*}
 
 In order to simplify \(p(z_t \mathbin{\vert} x_t, z_{1:t-1}, u_{1:t})\), we'll have to make an important assumption. We'll assume that the state \(x_t\) satisfies the Markov property, that is, \(x_t\) perfectly encapsulates all prior information. Thus if \(x_t\) is known, then \(z_{1:t}\) and \(u_{1:t}\) are redundant. This assumption lets us remove consideration of past sensor measurements and commands, and to rewrite the belief distribution as:
-\begin{equation}
+\begin{equation*}
 bel(x_t) = \frac{p(z_t \mathbin{\vert} x_t)p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})}{p(z_t \mathbin{\vert} z_{1:t-1}, u_{1:t})}
-\end{equation}
+\end{equation*}
 
 Notice that \(p(z_t \mathbin{\vert} z_{1:t-1}, u_{1:t})\) is a constant with respect to \(x_t\). Thus it makes sense to let \(\eta = (p(z_t \mathbin{\vert} z_{1:t-1}, u_{1:t}))^{-1}\) and rewrite the belief distribution as:
-\begin{equation}
+\begin{equation*}
 bel(x_t) = \eta p(z_t \mathbin{\vert} x_t) p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})
-\end{equation}
+\end{equation*}
 
 Now we are left with two distributions of interest. Looking closely one may notice that \(p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})\) is simply our original belief distribution, equation \ref{eqBel}, but not conditioned on the most recent sensor measurement, \(z_t\). Let us refer to this distribution as \(\overline{bel}(x_t)\), and break it down further using equation \ref{eqTotalProb} and our Markov assumption:
-\begin{multline}
+\begin{multline*}
 \overline{bel}(x_t) = p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t}) \\
 = \sum\limits_{x_{t-1}} p(x_t \mathbin{\vert} x_{t-1}, z_{1:t-1}, u_{1:t}) p(x_{t-1} \mathbin{\vert} z_{1:t-1}, u_{1:t}) \\
 = \sum\limits_{x_{t-1}} p(x_t \mathbin{\vert} x_{t-1}, u_t) p(x_{t-1} \mathbin{\vert} z_{1:t-1}, u_{1:t}) \\
 = \sum\limits_{x_{t-1}} p(x_t \mathbin{\vert} x_{t-1}, u_t) bel(x_{t-1})
-\end{multline}
+\end{multline*}
 
 We have arrived at a recursive definition of \(bel(x_t)\) with respect to \(bel(x_{t-1})\)! As long as \(p(x_t \mathbin{\vert} x_{t-1}, u_t)\) and \(p(z_t \mathbin{\vert} x_t)\) are known, we can recursively calculate \(bel(x_t)\).
 
@@ -66,17 +66,29 @@ We have arrived at a recursive definition of \(bel(x_t)\) with respect to \(bel(
 \(p(z_t \mathbin{\vert} x_t)\) also defines a stochastic model, modeling the sensor measurements \(z_t\) as noisy projections of the robot's environment. This distribution will be referred to as the \textit{measurement probability}. \cite{}
 
 Once we have models for both the \textit{state transition probability} and \textit{measurement probability}, we can finally construct the algorithm known as Bayes' Filter:
-\begin{multline}
-\text{Given } (bel(x_{t-1}), u_t, z_t): \\
-\qquad \text{For all possible states } x_t^* \text{ compute:} \\
-\qquad \qquad \overline{bel}(x_t^*) = \sum\limits_{x_{t-1}^* \in x_{t-1}} p(x_t^* \mathbin{\vert} x_{t-1}^*, u_t) bel(x_{t-1}^*) \\
-\qquad \qquad bel(x_t^*) = \eta p(z_t \mathbin{\vert} x_t^*) \overline{bel}(x_t^*) \\
-\qquad \text{end loop} \\
-\qquad \text{Set } \sum\limits_{x_t^* \in x_t} bel(x_t^*) = 1 \text{, and solve for } \eta \\
-\qquad \text{Use } \eta \text{ to compute and return } bel(x_t)
-\end{multline}
+
+
+\begin{algorithm} 
+\caption{Bayes Filter} 
+\label{BayesFilter}
+\begin{algorithmic}[1]
+\Function{BayesFilterIterate}{ $bel(x_{t-1})$, $u_t$, $z_t$ }
+	\For{each possible state \(x_t^* \in x_t\) }
+	\State{\(\overline{bel}(x_t^*) = \sum\limits_{x_{t-1}^* \in x_{t-1}} p(x_t^* \mathbin{\vert} x_{t-1}^*, u_t) bel(x_{t-1}^*) \)}
+	\State{\(bel(x_t^*) = \eta p(z_t \mathbin{\vert} x_t^*) \overline{bel}(x_t^*) \)}
+	\EndFor
+	\State{Set \(\sum\limits_{x_t^* \in x_t} bel(x_t^*) = 1\), and solve for \(\eta \)}
+	\State{Use \(\eta\) to compute \(bel(x_t)\)}
+	\State \Return{\(bel(x_t)\)}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Example}
 
 
+
+
 \section{Kalman Filter}
+
+\subsection{Extended Kalman Filter}

@@ -26,6 +26,10 @@
 \usepackage{lgrind}
 \usepackage[fleqn]{mathtools}
 \usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx} % package to manage images
+\graphicspath{ {figures/} }
 %% These have been added at the request of the MIT Libraries, because
 %% some PDF conversions mess up the ligatures.  -LB, 1/22/2014
 \usepackage{cmap}
@@ -46,9 +50,12 @@
 \include{abstract}
 
 \pagenumbering{arabic}
-%\include{introduction}
-\include{chap1}
-%\include{chap2}
+\include{introduction}
+\include{Theory}
+\include{Hardware}
+\include{ROS}
+\include{Navigation}
+\include{Field_Test}
 %\appendix
 %\include{appa}
 %\include{appb}
