@@ -1,6 +1,17 @@
 \chapter{Introduction}
 
 \section{Goal}
-navigate campus
+Create a cheap outdoors autonomous robot. Given a 'map' of the New College campus, this robot should be able to navigate from one outdoors location to another using footpaths. In doing so, it should dynamically avoid obstacles such as people, and recalculate alternate routes when a route is unexpectedly blocked.
 
-\section{}
+\section{Navigation}
+intro to the concept of navigation
+
+Since a map with GPS coordinates is provided, this is not Simultaneous Localization and Mapping (SLAM), but a simplified navigation problem. 
+
+\section{Choice of Sensors}
+IR, Microsoft Kinect
+can't use because the rover will be outdoors during the day and the sun gives off ambient IR radiation.
+
+LIDAR - state of the art
+
+And LIDAR sensors would be too costly. constrained by cheap hardware, and the inability to use IR or LIDAR sensors.
