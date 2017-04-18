@@ -1,6 +1,6 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% MAJOR CREDIT TO (THIS IS ALL A RIP-OFF OF): MIT LaTeX thesis template: http://web.mit.edu/thesis/tex/
+% MAJOR CREDIT TO (THIS IS A MODIFIED COPY OF): MIT LaTeX thesis template: http://web.mit.edu/thesis/tex/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -30,6 +30,7 @@
 % Option `twoside':
 %   Good for producing Tech Reports.
 %   The default is single-sided printing.
+%   NCF guidelines dictate theses must be single-sided.
 %
 % Option `singlespace':
 %   Good for drafts.
@@ -111,10 +112,10 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{ncfthesis}[2017/03/22]
 
-\def\mystretch{1.5}		% Double spacing hack
+\def\mystretch{2.0}		% Double spacing hack
 \DeclareOption{doublespace}{}	% This is default
 				% So we do not read this style twice
-\DeclareOption{singlespace}{		% If he explicitly wants single spacing
+\DeclareOption{singlespace}{		% If one explicitly wants single spacing
     \typeout{Single spaced}
     \def\mystretch{1}}	
 
@@ -148,9 +149,7 @@
 
 % Read the doublespace style that we got from Rochester:
 %\input setdoublespace.sty 		
-
 \def\baselinestretch{\mystretch}	% Double spacing hack
-
 %%%%%%%  Set up margins and formatting params %%%
 
 % Margins.

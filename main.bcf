@@ -2057,7 +2057,11 @@
     <bcf:citekey order="8">fig_ping</bcf:citekey>
     <bcf:citekey order="9">fig_arduino_uno</bcf:citekey>
     <bcf:citekey order="10">fig_arduino_uno</bcf:citekey>
-    <bcf:citekey order="11">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="11">usbForum</bcf:citekey>
+    <bcf:citekey order="12">dcMotorBlog</bcf:citekey>
+    <bcf:citekey order="13">sabertoothUserGuide</bcf:citekey>
+    <bcf:citekey order="14">sabertoothUserGuide</bcf:citekey>
+    <bcf:citekey order="15">robot_localization_paper</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty/global" type="entry" sortscheme="nty" sortnamekeyscheme="global">
   <bcf:sorting>

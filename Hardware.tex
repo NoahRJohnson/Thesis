@@ -2,54 +2,138 @@
 
 %TODO: Mention initial parts list was inspired by http://www.instructables.com/id/Autonomous-Lynxmotion-Rover/
 \section{Specific Hardware Used}
-
+The specific hardware used in this project was chosen to minimize cost while still producing a vehicle capable of navigating rough, uneven outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500.
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
 	\caption{Lynxmotion 4WD Rover \cite{fig_lynxmotion_rover}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{lynxmotion-aluminum-a4wd1-rover-kit-w-encoders-7}
+	\label{FigLynxmotionRover}
 \end{wrapfigure}
 
-The mobile base used is the Lynxmotion A4WD1 Rover, shown on the right. This kit comes with four 200 rpm dc gear motors, and four optical quadrature motor encoders.
+The mobile base used is the Lynxmotion A4WD1 Rover, see Figure \ref{FigLynxmotionRover}. This kit comes with four 200 rpm DC gear motors, and four motor encoders. The chassis consists of four aluminum side brackets, and two polycarbonate panels on the top and bottom.
 
 \begin{wrapfigure}{l}{0.25\textwidth}
 	\caption{Sabertooth 2x12 \cite{fig_sabertooth}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{sabertooth-dual-regenerative-motor-driver_3}
+	\label{FigSabertooth}
 \end{wrapfigure}
 
-The motors are controlled by a Sabertooth dual-channel 12A 6V-24V regenerative motor driver, shown on the left. This motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in an 18650 battery case which has been soldered to act as a battery pack with two 18650 cells in series. The battery cells are individually charged before use with a NiteCore-i2-V2014 li-ion charger.
+The motors are controlled by a Sabertooth dual-channel 12A 6V-24V regenerative motor driver, see Figure \ref{FigSabertooth}. This motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in an 18650 battery case which has been soldered to act as a battery pack with two 18650 cells in series. The battery cells are individually charged before use with a NiteCore-i2-V2014 li-ion charger.
 
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
 	\caption{PING))) Ultrasonic Sensor \cite{fig_ping}}
 	\centering
-	\includegraphics[width=0.25\textwidth]{parallax-ping-ultrasonic-sensor_1}
+	\includegraphics[width=0.25\textwidth]{parallax-ping-ultrasonic-sensor}
+	\label{FigPing}
 \end{wrapfigure}
 
-On top of the rover is the PING))) ultrasonic distance sensor, which is attached to a standard Parallax servo which pans back and forth 180 degrees.
+On top of the rover is the PING))) ultrasonic distance sensor (see Figure \ref{FigPing}), which is attached to a standard Parallax servo which pans back and forth 180 degrees.
 
 \begin{wrapfigure}{l}{0.25\textwidth}
 	\caption{Arduino Uno R3 \cite{fig_arduino_uno}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{arduinoUno}
+	\label{FigArduino}
 \end{wrapfigure}
 
-At the center of the rover is an Arduino Uno R3. This microcontroller handles several important tasks. It tells the motor driver what speed to set its two output channels to, and directly controls the panning motion of the standard Parallax servo. It also acts as a go-between for the digital output of the sensors on the rover and a laptop. It's connected to this laptop via a USB cable, which powers the board and allows communication over a serial port. Motor encoder values and ultrasonic range data are transmitted to the laptop, and motor power commands are received.
+At the center of the rover is an Arduino Uno R3, see Figure \ref{FigArduino}. This microcontroller handles several important tasks. It tells the motor driver what speed to set its two output channels to, and directly controls the panning motion of the standard Parallax servo. It also acts as a go-between for the digital output of the sensors on the rover and a laptop. It's connected to this laptop via a USB cable, which powers the board and allows communication over a serial port. Motor encoder values and ultrasonic range data are transmitted to the laptop, and motor power commands are received. An Arduino prototyping shield is stacked on top to allow re-usability of the board.
 
-The specific laptop used in this project is the Dell Inspiron 3531, which has a quad core 2.16 GHz processor, and 4 GB of RAM. While these are relatively limited computational resources, the laptop was a personal work machine and already available to use for no additional cost. The machine is used as the main processing unit for the navigation logic. 
+The specific laptop used in this project is the Dell Inspiron 3531, which has a quad core 2.16 GHz processor, and 4 GB of RAM. Any personal laptop running Ubuntu or Debian could be used here, and additional computational resources would be beneficial. However, this laptop was a personal work machine and already available to use at no additional cost. The laptop is used as the main processing unit for the navigation logic.
 
-The last component is a Nexus 4 smartphone placed on the top panel of the rover, which is also connected to the laptop by USB. Inside this phone is an MPU-6050 chip which contains a gyroscope and accelerometer. Elsewhere on the phone's logic board are a magnetometer, otherwise known as a digital compass, and a GPS receiver. This smartphone was also already available, and acts as a cheap Inertial Measurement Unit (IMU) and GPS receiver for the robot.
+The last component is a Nexus 4 smartphone placed on the top panel of the rover, which is also connected to the laptop by USB. Inside this phone is an MPU-6050 chip which contains a gyroscope and accelerometer. Elsewhere on the phone's logic board are a magnetometer, otherwise known as a digital compass, and a GPS receiver. This was also a personal device already available, and acts as a cheap Inertial Measurement Unit (IMU) and GPS receiver for the robot.
 
 \section{Construction}
 
-\begin{figure}[h]
+\begin{wrapfigure}{r}{0.5\textwidth}
+	\caption{Constructed Chassis}
+	\centering
+	\includegraphics[width=0.5\textwidth]{chassis-constructed}
+	\label{FigConstructedChassis}
+\end{wrapfigure}
+
+Figure \ref{FigConstructedChassis} shows the base just after assembly. The aluminum side brackets' mounting holes did not line up properly with the motors, so a Dremel drill was used to widen them.
+
+\begin{wrapfigure}{l}{0.5\textwidth}
+	\caption{Pieces Mounted}
+	\centering
+	\includegraphics[width=0.5\textwidth]{chassis-parts-mounted}
+	\label{FigChassisParts}
+\end{wrapfigure}
+
+The Arduino Uno was screwed to a 2.5" x 3" x 0.5" wooden poplar block, with non-conductive nylon washers placed between the screw head and the Uno, and between the Uno and the wooden block. The wooden Arduino mounting board and the Sabertooth were both attached via double-sided foam mounting tape to the bottom panel of the rover. The battery holder was attached with glue dots to make removal easier.
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+	\caption{Construction Finished}
+	\centering
+	\includegraphics[width=0.5\textwidth]{roverFinished}
+	\label{FigRoverFinished}
+\end{wrapfigure}
+
+The servo fits conveniently into a pre-cut opening in the top chassis panel, and is held in place with four 3mm x 6mm screws and corresponding washers. A mounting bracket is attached to the servo, and the PING))) sensor is screwed to that mounting bracket, using non-conductive washers and screws to separate the circuit board and the metal mounting bracket.
+
+Another opening in the top panel allows the PING))) sensor to connect to the Arduino inside the body of the rover. This opening also allows the type A/B USB cable connected to the Arduino to extend out and reach the laptop. The smartphone sits on the top panel just to the left of this opening, secured in place by removable glue adhesive dots. It is also connected to the laptop via a micro-USB to USB cable.
+
+Both USB cables are long, stretching to just under 10 feet. The USB 2.0 specification limits the length of cable between two 2.0 USB devices to less than five meters, or about 16 feet \cite{usbForum}. Thus there should be no problem with the current length, but extensions in the future could not go much further. 
+
+Connecting electronics on the rover to the laptop via USB means the processing laptop must manually be kept within 10 feet of the rover as it navigates. This design could easily be extended to include wireless or radio communication with a server, and a larger chassis would simply be able to carry the laptop on it. However, USB cables are cheap and still function as a proof of concept for an autonomous design.
+
+\begin{figure}[p] 
 	\caption{Connections Made}
 	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{RoverDesign}
 	\centering
-	\text{This image was created with Fritzing.}
+	\label{figRoverDesign}
+	\text{This image was created with Fritzing}
 \end{figure}
 
-\subsection{Arduino Pin Connections}
-Most digital pin numbers used are arbitrary, and connections may be permuted without any change. The sole exception  for Special care is taken in the 
+Figure \ref{figRoverDesign} is a schematic specifying the overall design for the rover.
 
-\section{Arduino Sketch}
-A sketch is Arduino-speak for a program uploaded to the board which will run on a loop as long as the board is powered.
+Connections were made with flexible stranded core, 22 AWG breadboard wires. Connections to the Arduino's digital pins were made indirectly. A prototyping shield was stacked on top of the Arduino, and connected to its digital pins via pin headers. Signal pins were then soldered to the prototyping shield. Breadboard wires needing direct connection would ideally use terminal block connectors. However, these were difficult to find at a reasonable price, and so wires were soldered together tip to tip, and then wrapped in electrical tape.
+
+The Sabertooth motor driver controls two motor channels. It drives DC motors from these channels in a relatively simple way. The speed of DC motors is proportional to the voltage supplied to them, and the direction of rotation can be flipped simply by flipping the polarity of the supplied voltage. The motor driver manages the effective voltage supplied to each channel using pulse-width modulation (PWM), and handles polarity using an on-board H-bridge. \cite{dcMotorBlog}
+
+
+\subsection{Power}
+Besides the Arduino Uno, which is powered separately by a USB connection to the laptop, most of the rover's components are powered by the battery pack. This pack contains two individual 18650 lithium-ion cells placed into a battery holder and connected in series. The battery pack is then connected to the motor driver's battery terminals B+ and B-. The positive B+ output goes through a microswitch, which is attached to a side bracket in the rover, and is accessible from the outside. This acts as a kill switch for the battery pack.
+
+Each 18650 cell holds 4.2V at full charge, and discharges down to a minimum of 2.7V. The motor driver has a lithium cutoff mode which shuts the driver down when the average voltage of cells in the battery pack reaches 3.0V. Thus the voltage supplied to the four motors through the motor driver's output channels will range from 8.4V to 6.0V, which is within their acceptable operating range.
+
+The specific li-ion cells being used can supply up to 20A continuously, and the motor driver can handle up to 12A per channel. The motors each draw a maximum current of 1.5A, and two are used per channel, putting the total possible current draw of 3A per channel well below the limits of the motor driver and battery pack.
+
+The motor driver has an onboard battery eliminator circuit (BEC) which is an efficient 5V voltage regulator capable of supplying up to 1 amp of continuous current, with 1.5 Amps at peak. The ultrasonic sensor, its servo, and the two rotary encoders combined use less than 500 mA, and are all powered through this BEC. The Arduino is also connected to this BEC's ground, as the Uno and Sabertooth must share a common ground plane in order for the control signals to be read correctly. \cite{sabertoothUserGuide}
+
+The standard servo has the potential to draw peak currents of up to 1A, if it hits a snag and is stopped from moving. Therefore the input wires to the 5V and 0V BEC terminal connectors should be capable of handling those peaks. Since we are using 22 AWG wires, we are close to the limit, but a 22 AWG wire with 43 or more internal cores is rated to handle 1A. And the expected consistent draw is much lower, less than 500mA. 
+
+Note that the sensors attached to the microcontroller should be powered off before the Arduino, else the Arduino may try to power the whole Mega chip via its input pins. The sensors are powered from the BEC on the motor driver, so they may be turned off by using the microswitch between the battery holder and the motor driver.
+
+\section{Arduino}
+
+%TODO
+TODO: Explain what digital pins are
+======================
+
+As one can see in Figure \ref{figRoverDesign}, only two optical quadrature encoders are used, with one placed on the front motor for both the left and right side of the rover. This is due to a hardware limitation of the Arduino Uno. The Uno only has two hardware interrupt pins, digital pins 2 and 3. A hardware interrupt is necessary to keep up with the fast rate of pin voltage changes that rotary encoders output. Because there are only two hardware interrupt pins, only two of the four quadrature motor encoders are used. The two encoders chosen in this design are attached to the front motors of the rover.
+
+If a different Arduino board such as the Mega were used, there would be sufficient hardware interrupt pins for all four encoders. Using a board with plentiful interrupts, one could even attach both channel outputs of the encoders to interrupt pins, rather than only one. This would double the encoders' resolution \ref{encoderBlog}.
+
+\subsection{Arduino Pin Connections}
+Each encoder has two output channels, channel A and channel B. Both encoders attach one of their output channels, channel A, to a hardware interrupt pin. The right motor's encoder connects channel A to pin 2, and channel B to pin 4. The left motor's encoder connects its channel A output to pin 3, and its channel B output to pin 7. 
+
+The S1 and S2 signal input terminals on the Sabertooth motor driver are connected to digital pins 5 and 6. The signal input for the hobby servo is connected to digital pin 9. The signal input for the ultrasonic sensor is connected to digital pin 11. The Arduino's ground pin is connected to the motor driver's BEC's ground, to ensure a common ground plane.
+
+Most digital pin numbers used are arbitrary, and connections may be permuted without any change. The exceptions are pins 0-3, which must be left unchanged. Pins 0 and 1 must be left unattached for serial data transfer to work properly over USB. And pins 2 and 3 are hardware interrupt pins which must be used to handle the quadrature encoders' output.
+
+\subsection{Motor Driver Configuration}
+The Sabertooth has two signal input terminals, S1 and S2, which allow the Arduino to issue instructions for the motors. Configurations and settings of the driver are specified by flipping six on-board DIP switches between their down and up positions. Setting switch 1 down and switch 2 up places the driver into R/C input mode, which configures S1 and S2 to expect pulse-position modulation (PPM) signals, à la R/C controllers. The Arduino controls servos via the Servo library using PPM signals. This allows the Arduino code to treat S1 and S2 as ordinary servos. \cite{sabertoothUserGuide}
+
+Turning switch 3 down selects the lithium cutoff mode, which detects the number of lithium cells in series powering the driver, and shuts off when the battery pack's voltage drops below 3.0V per cell, or 6.0V in the current configuration of two cells. This is used to prevent accidental damage to the 18650 cells by over-discharging them in the field.
+
+Flipping switch 4 down selects independent (differential) drive, which allows S1 and S2 to each independently control the speed of one of the motor channels. Thus turning of the vehicle is achieved by lowering the relative speed of the motors on the side which the rover is turning to.
+
+Switch 5 is kept up to ensure a linear rather than exponential response of the motors to the microcontroller's input signal. Switch 6 is set down to select the microcontroller mode, which turns off auto-calibration of the zero-movement point, and turns off an automatic timeout. Thus if the signal connection is somehow lost the motor driver will continue driving the motors according to the last signal received. This is necessary for smooth performance of the motors since the Arduino may slightly delay control pulses due to hardware interrupts. Though this introduces a risk of loss of control, it is a small one as the only way for the connection between the microcontroller and motor driver to be lost would be for the signal breadboard wires to come undone during use.
+
+\subsection{Arduino Sketch}
+A sketch is Arduino-speak for a program uploaded to the board which will run on a loop as long as the board is powered. Though this is not hardware, the sketch interacts with the components on a low level, and so it seems appropriate to cover here.
+
+%\lstinputlisting[language=C++]{../AutoRover/Arduino/rover_sketch/rover_sketch.ino}
+
