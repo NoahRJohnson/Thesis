@@ -9,6 +9,7 @@ The Robot Operating System (ROS)
 \subsection{Frames}
 
 \subsection{Topics}
+\subsection{Messages}
 publishing and subscribing messages
 
 
@@ -16,10 +17,32 @@ publishing and subscribing messages
 
 \section{Ros Sensors App}
 Android app to publish IMU and GPS data from a smartphone.
+\subsection{Sensor Background}
+GPS Receivers
+IMU chips: magnetometers, accelerometers, gyroscopes
+what a quaternion is
+
+\subsection{}
+Covariance matrices
 \subsection{How to use}
+
+\section{Arduino Repeater Node} \label{RepeaterNode}
+Adjust code for conversion of ultrasonic sensor ping times to distance, to take into account the ambient air temperature
+If an echo has been received, then the speed of sound in air in m/s, \(C_{air}\), is calculated using the current air temperature in Celsius \(T_C\):
+\[C_{air} = 331.5 + (0.6 * T_C)*\]
+
+Multiplying \(C_{air}\) by the duration of the timed output pulse gives the estimated distance of the first object in front of the sensor.
+
+Differential drive (skid steering)
+wheels can slip
+ (high covariance?)
 
 
 \section{robot\_localization package}
 odometry estimate from wheel encoders
 
+
 \cite{robot_localization_paper}
+
+\section{Results}
+results of state estimation / sensor fusion test in parking lot

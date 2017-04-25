@@ -335,13 +335,13 @@ by
 \par
 \choosecase{A Thesis}
 \par
-\choosecase{Submitted to the} \choosecase{\@division}
-\choosecase{\Ncf}
-\choosecase{in partial fulfillment of the requirements for the degree}
-\choosecase{Bachelor of Arts}
-\choosecase{under the sponsorship of \@sponsor}
+\choosecase{Submitted to the} \choosecase{\@division} \\
+\choosecase{\Ncf} \\
+\choosecase{in partial fulfillment of the requirements for the degree} \\
+\choosecase{Bachelor of Arts} \\
+\choosecase{under the sponsorship of} \choosecase{\@sponsor}
 \par
-Sarasota, Florida
+Sarasota, Florida \\
 \@degreemonth\ \@degreeyear
 \end{titlepage}}
 
@@ -351,8 +351,9 @@ Sarasota, Florida
 % basic abstract environment
 \def\abstractpage{\clearpage
 \begin{center}{\large{\bf \@title} \\
-by \\
-\@author \\[\baselineskip]}
+\@author \\
+\Ncf, \@degreeyear
+\\[\baselineskip]}
 \par
 \def\baselinestretch{1}\@normalsize
 Submitted to the \@division \\

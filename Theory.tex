@@ -1,5 +1,6 @@
 \chapter{Theory}
 
+Robots estimate their environment stochastically, and so probability theory is vital to understanding their inner workings. First we will review the necessary theory, and then we will examine a class of algorithms for recursive state estimation.
 
 \section{Probability Background}
 Discrete random variables have a finite output space of possible values that may be observed. Let X be a random variable, then we define the probability that we observe value x from X as \( p(X = x) \equiv p(x)\). Since x is arbitrary, this defines a probability distribution. For every random variable X, we have
@@ -25,11 +26,11 @@ In the future this will prove to be a useful tool to compute a posterior probabi
 
 \section{Bayes Filter}
 \subsection{Scenario}
-Consider the general case of a robot which uses sensors to gather information about its environment. These sensors provide readings at discrete time steps \(t=0,1,2,...\). Some amount of noise is associated with each of these readings. At each time step \(t\), the robot may execute commands to affect its environment, and wishes to know its current state.
+Consider the general case of a robot which uses sensors to gather information about its environment. These sensors provide readings at discrete time steps \(t=0,1,2,...\). Some amount of noise is associated with each of these readings. At each time step \(t\), the robot may execute commands to affect its environment, and wishes to know its current state. \cite{probabilisticRobotics}
 
-Let's encode the robot's current state at time \(t\) in the vector \(x_t\). Similarly, \(z_t\) will represent a sensor measurement at time \(t\), and \(u_t\) will represent the commands issued by the robot at time \(t\). For each of these vectors we will use the notation \(z_{1:t} = z_1, z_2, ..., z_t\). 
+Let's encode the robot's current state at time \(t\) in the vector \(x_t\). Similarly, \(z_t\) will represent a sensor measurement at time \(t\), and \(u_t\) will represent the commands issued by the robot at time \(t\). For each of these vectors we will use the notation \(z_{1:t} = z_1, z_2, ..., z_t\). \cite{probabilisticRobotics}
 
-The robot only has access to data in the form of \(z_t\) and \(u_t\). Thus it cannot ever have perfect knowledge of its state \(x_t\). It will have to make do by storing a probability distribution assigning a probability to every possible realization of \(x_t\). This posterior probability distribution will represent the robot's belief in its current state, and should be conditioned on all available data. Thus we'll define the robot's belief distribution to be:
+The robot only has access to data in the form of \(z_t\) and \(u_t\). Thus it cannot ever have perfect knowledge of its state \(x_t\). It will have to make do by storing a probability distribution assigning a probability to every possible realization of \(x_t\). This posterior probability distribution will represent the robot's belief in its current state, and should be conditioned on all available data. Thus we'll define the robot's belief distribution to be \cite{probabilisticRobotics}:
 \begin{equation} \label{eqBel}
 bel(x_t) = p(x_t \mathbin{\vert} z_{1:t}, u_{1:t})
 \end{equation}
@@ -51,7 +52,7 @@ Notice that \(p(z_t \mathbin{\vert} z_{1:t-1}, u_{1:t})\) is a constant with res
 bel(x_t) = \eta p(z_t \mathbin{\vert} x_t) p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})
 \end{equation*}
 
-Now we are left with two distributions of interest. Looking closely one may notice that \(p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})\) is simply our original belief distribution, equation \ref{eqBel}, but not conditioned on the most recent sensor measurement, \(z_t\). Let us refer to this distribution as \(\overline{bel}(x_t)\), and break it down further using equation \ref{eqTotalProb} and our Markov assumption:
+Now we are left with two distributions of interest. Looking closely one may notice that \(p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t})\) is simply our original belief distribution, equation \ref{eqBel}, but not conditioned on the most recent sensor measurement, \(z_t\). Let us refer to this distribution as \(\overline{bel}(x_t)\), and break it down further using equation \ref{eqTotalProb} and our Markov assumption \cite{probabilisticRobotics}:
 \begin{multline*}
 \overline{bel}(x_t) = p(x_t \mathbin{\vert} z_{1:t-1}, u_{1:t}) \\
 = \sum\limits_{x_{t-1}} p(x_t \mathbin{\vert} x_{t-1}, z_{1:t-1}, u_{1:t}) p(x_{t-1} \mathbin{\vert} z_{1:t-1}, u_{1:t}) \\
@@ -61,12 +62,11 @@ Now we are left with two distributions of interest. Looking closely one may noti
 
 We have arrived at a recursive definition of \(bel(x_t)\) with respect to \(bel(x_{t-1})\)! As long as \(p(x_t \mathbin{\vert} x_{t-1}, u_t)\) and \(p(z_t \mathbin{\vert} x_t)\) are known, we can recursively calculate \(bel(x_t)\).
 
-\(p(x_t \mathbin{\vert} x_{t-1}, u_t)\) defines a stochastic model for the robot's state, defining how the robot's state will evolve over time based upon what commands it issues. This probability distribution is known as the \textit{state transition probability}. \cite{}
+\(p(x_t \mathbin{\vert} x_{t-1}, u_t)\) defines a stochastic model for the robot's state, defining how the robot's state will evolve over time based upon what commands it issues. This probability distribution is known as the \textit{state transition probability}. \cite{probabilisticRobotics}
 
-\(p(z_t \mathbin{\vert} x_t)\) also defines a stochastic model, modeling the sensor measurements \(z_t\) as noisy projections of the robot's environment. This distribution will be referred to as the \textit{measurement probability}. \cite{}
+\(p(z_t \mathbin{\vert} x_t)\) also defines a stochastic model, modeling the sensor measurements \(z_t\) as noisy projections of the robot's environment. This distribution will be referred to as the \textit{measurement probability}. \cite{probabilisticRobotics}
 
-Once we have models for both the \textit{state transition probability} and \textit{measurement probability}, we can finally construct the algorithm known as Bayes' Filter:
-
+Once we have models for both the \textit{state transition probability} and \textit{measurement probability}, we can finally construct the algorithm known as Bayes' Filter \cite{probabilisticRobotics}:
 
 \begin{algorithm} 
 \caption{Bayes Filter} 
@@ -90,5 +90,6 @@ Once we have models for both the \textit{state transition probability} and \text
 
 
 \section{Kalman Filter}
+
 
 \subsection{Extended Kalman Filter}

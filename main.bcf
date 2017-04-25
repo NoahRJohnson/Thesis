@@ -2049,19 +2049,38 @@
     <bcf:datasource type="file" datatype="bibtex">mainBib.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="3">fig_lynxmotion_rover</bcf:citekey>
-    <bcf:citekey order="4">fig_lynxmotion_rover</bcf:citekey>
-    <bcf:citekey order="5">fig_sabertooth</bcf:citekey>
-    <bcf:citekey order="6">fig_sabertooth</bcf:citekey>
-    <bcf:citekey order="7">fig_ping</bcf:citekey>
-    <bcf:citekey order="8">fig_ping</bcf:citekey>
-    <bcf:citekey order="9">fig_arduino_uno</bcf:citekey>
-    <bcf:citekey order="10">fig_arduino_uno</bcf:citekey>
-    <bcf:citekey order="11">usbForum</bcf:citekey>
-    <bcf:citekey order="12">dcMotorBlog</bcf:citekey>
-    <bcf:citekey order="13">sabertoothUserGuide</bcf:citekey>
-    <bcf:citekey order="14">sabertoothUserGuide</bcf:citekey>
-    <bcf:citekey order="15">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="1">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="2">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="3">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="4">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="5">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="6">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="7">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="8">fig_lynxmotion_rover</bcf:citekey>
+    <bcf:citekey order="9">fig_lynxmotion_rover</bcf:citekey>
+    <bcf:citekey order="10">fig_sabertooth</bcf:citekey>
+    <bcf:citekey order="11">fig_sabertooth</bcf:citekey>
+    <bcf:citekey order="12">fig_ping</bcf:citekey>
+    <bcf:citekey order="13">fig_ping</bcf:citekey>
+    <bcf:citekey order="14">pingDocumentation</bcf:citekey>
+    <bcf:citekey order="15">fig_arduino_uno</bcf:citekey>
+    <bcf:citekey order="16">fig_arduino_uno</bcf:citekey>
+    <bcf:citekey order="17">usbForum</bcf:citekey>
+    <bcf:citekey order="18">dcMotorBlog</bcf:citekey>
+    <bcf:citekey order="19">sabertoothUserGuide</bcf:citekey>
+    <bcf:citekey order="20">encoderBlog</bcf:citekey>
+    <bcf:citekey order="21">sabertoothUserGuide</bcf:citekey>
+    <bcf:citekey order="22">fig_optical_encoders</bcf:citekey>
+    <bcf:citekey order="23">encoderBlog</bcf:citekey>
+    <bcf:citekey order="24">fig_quad_channels</bcf:citekey>
+    <bcf:citekey order="25">encoderBlog</bcf:citekey>
+    <bcf:citekey order="26">encoderBlog</bcf:citekey>
+    <bcf:citekey order="27">encoderBlog</bcf:citekey>
+    <bcf:citekey order="28">gammonInterrupts</bcf:citekey>
+    <bcf:citekey order="29">pingDocumentation</bcf:citekey>
+    <bcf:citekey order="30">newPing</bcf:citekey>
+    <bcf:citekey order="31">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="32">fig_ros_control</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty/global" type="entry" sortscheme="nty" sortnamekeyscheme="global">
   <bcf:sorting>
