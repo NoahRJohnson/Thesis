@@ -3,46 +3,165 @@
 \section{ROS}
 The Robot Operating System (ROS)
 
-
+\section{Overview}
 \subsection{Nodes}
-
-\subsection{Frames}
+processes
 
 \subsection{Topics}
+many to many
+
 \subsection{Messages}
 publishing and subscribing messages
 
+\subsection{Frames}
+coordinate axes
+reference frames
+position and orientation
+quaternion vectors represent orientation
+messages have frame\_ids detailing which frame they are in
 
-\section{Overview}
+\subsection{Transforms}
+conversions between frames
+handled by the ROS package tf
+broadcasting transforms
 
-\section{Ros Sensors App}
-Android app to publish IMU and GPS data from a smartphone.
-\subsection{Sensor Background}
-GPS Receivers
-IMU chips: magnetometers, accelerometers, gyroscopes
-what a quaternion is
 
-\subsection{}
-Covariance matrices
-\subsection{How to use}
+\subsection{User defined packages}
+auto\_rover package
 
-\section{Arduino Repeater Node} \label{RepeaterNode}
+\subsection{Launch Files}
+XML launch files
+systems get complicated, with dozens of nodes
+nobody wants to go through and manually start all those up, so it makes sense to streamline and aggregate startup (launch) files for all of them in the same place
+
+
+\section{rosserial}
+installs ros\_lib arduino library
+allows sketch to run a ros node on arduino
+arduino library handles serial communication of message data with appropriate headers
+setup udev rule for arduino usb connection following : %https://www.clearpathrobotics.com/2015/01/arduino-ros/
+
+publishes encoder ticks, ping time, ping angle in degrees
+subscribes to motor commands
+
+EncCount is a custom message type which simply stores a snapshot of encoder
+tick counts for the left and right wheels at a time stamp. We use a simple
+rolling average with the kinematics equations for a differential drive
+robot (an approximation of our skid-steering rover), where the two imaginary
+wheels on both side of the rover are assumed to 'exist' at an average position
+of the two actual wheels. This average then gives us an estimate of the
+position and velocity of our rover, which we publish in an Odometry message.
+This odometry message is essentially dead reckoning, and is one of the inputs
+fused into the state estimation node. 
+
+types of arduino memory: SRAM, flash
+save space by storing string constants in flash memory rather than sram
+%http://answers.ros.org/users/4478/wolf/
+%https://github.com/strothmw/rosserial
+
+also manually tweaked input and output buffers in ros.h, and included my own custom message type, EncCount
+
+\subsection{rosserial\_python}
+runs on laptop, on other side of serial connection. has to match baud rate. uses /dev/arduino port. just takes serial communications and actually publishes the messages coming from the arduino, also forwards the messages the arduino sketch subscribes to over serial, and only those messages.
+
+\subsection{range\_converter}
+ping sensor at ultrasound frame
+
 Adjust code for conversion of ultrasonic sensor ping times to distance, to take into account the ambient air temperature
 If an echo has been received, then the speed of sound in air in m/s, \(C_{air}\), is calculated using the current air temperature in Celsius \(T_C\):
 \[C_{air} = 331.5 + (0.6 * T_C)*\]
 
 Multiplying \(C_{air}\) by the duration of the timed output pulse gives the estimated distance of the first object in front of the sensor.
 
-Differential drive (skid steering)
+Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
+
+\section{Differential\_drive package}
+
+Differential drive vs skid steering
 wheels can slip
- (high covariance?)
+(high covariance?)
+
+forked from %https://github.com/jfstepha/differential-drive
+
+modified to 
+
+\subsection{diff\_tf}
+produce odometry messages from encoder ticks
+
+covariance
+
+\subsection{virtual\_joystick}
+generate twist messages, like the ROS navigation stack would
+
+\subsection{twist\_to\_motors}
+translate twist messages to motor velocities for each motor channel, publish those
+
+
+\subsection{pid\_velocity}
+translate motor velocities to actual motor commands, which rosserial\_python will transmit over serial to the arduino
+
+\subsection{Encoder Calibration}
+
+\subsection{PID Parameter Tuning}
+
+\section{Ros Sensors App}
+Android app to publish IMU and GPS data from a smartphone.
+
+phone frame
+
+\subsection{GPS}
+GPS receivers background
+
+navsatfix message
+covariance matrix
+
+\subsection{IMU}
+IMU chips background: magnetometers, accelerometers, gyroscopes
+what a quaternion is
+
+publishes IMU message
+
+IMU messages are expected to be in ENU reference frame, instead of NED.
+
+Android TYPE\_ROTATION\_VECTOR sensor fuses magnetometer and accelerometer data to produce an quaternion representation of an orientation in the ENU frame.
+
+% https://source.android.com/devices/sensors/sensor-types#rotation_vector
+Android accelometer readings tell us the linear acceleration of the rover, but are reported with respect to the local orientation of the phone, and so the node converts them to the ENU orientation before publishing them, in the phone frame (which just specifies a static translation)
+
+Android gyroscope readings tell us the angular velocity of the rover, but are reported with respect to the local axes of the phone. However, our rover operates solely in 2D, and so we aren't interested in angular velocities of roll or pitch. And since the phone lays face-up on top of the rover, the phone's local z axis is the same as the ENU up axis, and so we don't need to transform the gyroscope reading for rad/sec rotation of yaw.
+
+
+
+covariance matrices
+
+\subsection{How to use}
+networking bridge
+on linux
 
 
 \section{robot\_localization package}
-odometry estimate from wheel encoders
+%http://docs.ros.org/kinetic/api/robot_localization/html/
+
+state estimation
+\subsection{Data Format Conventions}
+REP-103 and REP-105 for conventions
+true north, magnetic declination
+
+\subsection{}
+First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_tf node, and IMU message from phone node. Produces a fused estimate of odometry.
+
+navsat\_transform\_node takes in odometry message from first ekf node, which is the robot’s current position estimate in the frame specified by its start location. It also takes in the navsatfix and imu messages from the phone, and fuses all these to produce a different odometry estimate which is the gps data converted to the coordinates of the robot's world frame.
+
+Second ekf\_localization node fuses the gps and odometry outputs from the previous two nodes into a final odometry message which is the final estimation of the robot's current state.
 
 
 \cite{robot_localization_paper}
 
 \section{Results}
-results of state estimation / sensor fusion test in parking lot
+
+Used virtual\_joystick node with other differential\_drive control nodes to drive rover around a parking lot. Recorded data into a ROS bag file, which is ...
+
+here is route fitted on top of satellite image of that parking lot:
+
+\subsection{Remarks}
+final remarks on data and results, what went wrong, etc.
