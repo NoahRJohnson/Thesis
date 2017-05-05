@@ -1,9 +1,8 @@
 \chapter{ROS}
 
-\section{ROS}
-The Robot Operating System (ROS)
-
 \section{Overview}
+All software components in this project communicate using the asynchronous, distributed framework supported by the Robot Operating System (ROS). 
+
 \subsection{Nodes}
 processes
 
@@ -35,11 +34,15 @@ systems get complicated, with dozens of nodes
 nobody wants to go through and manually start all those up, so it makes sense to streamline and aggregate startup (launch) files for all of them in the same place
 
 
-\section{rosserial}
+\section{rosserial} \label{sectionRosSerial}
 installs ros\_lib arduino library
 allows sketch to run a ros node on arduino
-arduino library handles serial communication of message data with appropriate headers
+This arduino library handles serial communication of message data with appropriate headers
 setup udev rule for arduino usb connection following : %https://www.clearpathrobotics.com/2015/01/arduino-ros/
+57600 baud
+Ten bits are used per byte sent over the serial port: one start bit, eight data bits, and one stop bit. \[57600 bps / 10 bits = 5760 bytes per second (Bps)\]
+57,600 baud = 5,760 bytes / sec is more than enough for (14 byte per sensor update) * (30 updates per second (limit on ultrasonic sensor)) = 420 bytes per sec. At 960 bytes/sec, there is about a millisecond between byte transmissions. 
+Let’s calculate the maximum data transfer rate I will need for all my sensors + motor commands (should be much less than 53 MBps).
 
 publishes encoder ticks, ping time, ping angle in degrees
 subscribes to motor commands
@@ -87,6 +90,8 @@ modified to
 
 \subsection{diff\_tf}
 produce odometry messages from encoder ticks
+
+encoder ticks per meter must be calibrated
 
 covariance
 

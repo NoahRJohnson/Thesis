@@ -2068,17 +2068,17 @@
     <bcf:citekey order="17">usbForum</bcf:citekey>
     <bcf:citekey order="18">dcMotorBlog</bcf:citekey>
     <bcf:citekey order="19">sabertoothUserGuide</bcf:citekey>
-    <bcf:citekey order="20">encoderBlog</bcf:citekey>
-    <bcf:citekey order="21">sabertoothUserGuide</bcf:citekey>
-    <bcf:citekey order="22">fig_optical_encoders</bcf:citekey>
-    <bcf:citekey order="23">encoderBlog</bcf:citekey>
-    <bcf:citekey order="24">fig_quad_channels</bcf:citekey>
-    <bcf:citekey order="25">encoderBlog</bcf:citekey>
+    <bcf:citekey order="20">sabertoothUserGuide</bcf:citekey>
+    <bcf:citekey order="21">pingDocumentation</bcf:citekey>
+    <bcf:citekey order="22">newPing</bcf:citekey>
+    <bcf:citekey order="23">fig_optical_encoders</bcf:citekey>
+    <bcf:citekey order="24">encoderBlog</bcf:citekey>
+    <bcf:citekey order="25">fig_quad_channels</bcf:citekey>
     <bcf:citekey order="26">encoderBlog</bcf:citekey>
     <bcf:citekey order="27">encoderBlog</bcf:citekey>
-    <bcf:citekey order="28">gammonInterrupts</bcf:citekey>
-    <bcf:citekey order="29">pingDocumentation</bcf:citekey>
-    <bcf:citekey order="30">newPing</bcf:citekey>
+    <bcf:citekey order="28">encoderBlog</bcf:citekey>
+    <bcf:citekey order="29">encoderBlog</bcf:citekey>
+    <bcf:citekey order="30">gammonInterrupts</bcf:citekey>
     <bcf:citekey order="31">robot_localization_paper</bcf:citekey>
     <bcf:citekey order="32">fig_ros_control</bcf:citekey>
   </bcf:section>
