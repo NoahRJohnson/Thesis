@@ -1,16 +1,35 @@
 \chapter{ROS}
 
 \section{Overview}
-All software components in this project communicate using the asynchronous, distributed framework supported by the Robot Operating System (ROS). 
+The Robot Operating System (ROS) is a meta operating system for open-source robotics.
+
+package management
+
+asynchronous messaging between components
+
+\subsection{Messages}
+publishing and subscribing messages
+
+\subsection{Topics}
+All software components in this project communicate using the asynchronous, distributed framework supported by ROS.
+
+many to many
+
+ROS Master, like a DNS server
+node to node, TCP/IP sockets
+
+\subsection{Packages}
+contain nodes, message definitions, and service files
+There are also meta-packages which are, simply enough, collections of related packages.
 
 \subsection{Nodes}
 processes
 
-\subsection{Topics}
-many to many
-
-\subsection{Messages}
-publishing and subscribing messages
+\subsection{Launch Files}
+XML launch files
+systems get complicated, with dozens of nodes
+nobody wants to go through and manually start all those up, so it makes sense to streamline and aggregate startup (launch) files for all of them in the same place
+allows bringing multiple nodes up at once, and also specifying their parameters in YAML files
 
 \subsection{Frames}
 coordinate axes
@@ -28,27 +47,48 @@ broadcasting transforms
 \subsection{User defined packages}
 auto\_rover package
 
-\subsection{Launch Files}
-XML launch files
-systems get complicated, with dozens of nodes
-nobody wants to go through and manually start all those up, so it makes sense to streamline and aggregate startup (launch) files for all of them in the same place
-
 
 \section{rosserial} \label{sectionRosSerial}
-installs ros\_lib arduino library
-allows sketch to run a ros node on arduino
-This arduino library handles serial communication of message data with appropriate headers
-setup udev rule for arduino usb connection following : %https://www.clearpathrobotics.com/2015/01/arduino-ros/
-57600 baud
-Ten bits are used per byte sent over the serial port: one start bit, eight data bits, and one stop bit. \[57600 bps / 10 bits = 5760 bytes per second (Bps)\]
-57,600 baud = 5,760 bytes / sec is more than enough for (14 byte per sensor update) * (30 updates per second (limit on ultrasonic sensor)) = 420 bytes per sec. At 960 bytes/sec, there is about a millisecond between byte transmissions. 
-Let’s calculate the maximum data transfer rate I will need for all my sensors + motor commands (should be much less than 53 MBps).
+Communication between the Arduino and laptop is handled with the ROS metapackage rosserial. Different client packages support different client machines, such as embedded linux devices, or different microcontroller boards. These client packages create local support libraries or header files on those machines, which use a serialization protocol to send and receive ROS messages over a serial port. On the other side of the serial connection, host packages run a bridging node which communicates with the ROS network on behalf of the client machine. Subscribed topics have their messages serialized and sent to the client machine, and outgoing messages from the client are de-serialized and published. 
 
-publishes encoder ticks, ping time, ping angle in degrees
-subscribes to motor commands
+\subsection{rosserial\_arduino}
+rosserial\_arduino is one client package of rosserial, which creates an Arduino library to provide bare-bones ROS support to sketches. The sketch running on this project's Uno board uses this library to publish sensor data as messages, and subscribe to motor command topics.
 
-EncCount is a custom message type which simply stores a snapshot of encoder
-tick counts for the left and right wheels at a time stamp. We use a simple
+Every time the sketch wishes to update the laptop with its newest sensor readings, it publishes three messages. First the servo angle in degrees is published to the "/ping/angleDeg" topic, as a standard Int8 message. This message just contains a single data field: an 8-bit signed integer. Next the echo time in microseconds is published to the "/ping/timeUS" topic, as a standard UInt16 message which contains a single 16 bit data field representing an unsigned integer. Lastly the two encoder tick counts are both placed into a single custom message called EncCount, and published to the "/odom/encTicks" topic. This custom message type has two 32 bit fields, one for each encoder. This message type will be further explained in section \ref{sectionEncCount}.
+
+When the sketch is waiting between updates, it continually listens to the serial port for motor commands. These commands are Int8 messages on the "/cmd/left" or "/cmd/right" topics, which the sketch subscribes to. When these messages are found in the serial input buffer, a short callback function is executed, which writes the R/C pulse command to the proper motor channel.
+
+Arduino boards use different types of memory. Flash memory is used to store sketch code, and static random access memory (SRAM) is used to store dynamic variables at runtime. The Uno has 32kB of flash memory, but only 2kB of SRAM. The rosserial Arduino library is large, and takes up quite a lot of SRAM space. Its input and output serial buffers alone use 560 bytes. This makes running out of space for local variables quite easy, which can lead to instability and crashes when running the sketch. To save space, a modified version of rosserial\_arduino which supports storing constant strings in flash memory rather than SRAM has been used. Since topic names and error messages use long descriptive strings, this saves several hundred kB of space in SRAM and ensures the sketch's stability.
+%https://github.com/strothmw/rosserial
+
+The rosserial Arduino library abstracts away most of the serial communication protocol, but does allow the baud rate to be specified. In this use case, baud rate is equivalent to bits per second. The more bits per second sent over serial, the more frequently the microcontroller needs to sample the incoming and outgoing line. So the baud rate cannot be set arbitrarily high, as the Uno has a limited clock speed. If it is set too low, however, then the stream of sensor data being published would overwhelm the connection. Significantly less data will be streaming in than transmitted out, so the amount of outgoing data is the deciding factor. Thus to calculate an appropriate baud rate, the amount of sensor data transmitted per second must be known.
+
+rosserial uses a serial protocol with 8 bytes of overhead for every message. Each sensor update publishes three messages: an eight-byte EncCount message, a one-byte Int8 message, and a two-byte UInt16 message. This means that each update pushes 11 bytes of data in three messages, with 24 bytes of overhead. Thus a total of 35 bytes are sent over serial.
+
+Since the PING))) sensor requires a minimum delay of 30 ms between pings, the sketch cannot publish its sensor values at a rate higher than 33 Hz. Therefore the sketch will not push more than:
+\[33\ Hz * 35\ Bytes = 1155\ Bytes\ per\ second\ (Bps)\]
+
+The Uno uses one start bit and one stop bit to surround each byte of information sent over serial. Thus it takes 10 bits to send one byte of information. Therefore the minimum baud rate required is:
+\[1155\ Bps * 10\ bits\ per\ byte = 11550\ bits\ per\ second\]
+
+We'll choose a standard baud rate of 28,800 to more than double that for some breathing room, and to account for the fact that the rosserial Arduino library occasionally transmits time-keeping and synchronization messages of its own.
+
+\subsection{rosserial\_python}
+rosserial\_python is one host package of rosserial, which acts as a bridge between the Arduino and the ROS network. It runs a node on the laptop which communicates with the Arduino using the rosserial protocol. It automatically handles setup, communication with the ROS master, subscription, and publishing on behalf of the Arduino. When launched, the serial node must be configured to use the same baud rate as the Arduino: 28,800. It must also be configured to connect to whichever serial port name the Arduino uses. For simplicity, a symbolic link was created using a udev rule on the laptop, to ensure that the port name will always be accessible as "/dev/arduino". %https://www.clearpathrobotics.com/2015/01/arduino-ros/
+
+\section{differential\_drive}
+The differential\_drive package was created by Jon Stephan to create a simple interface for controlling a differential-drive robot \cite{}. Differential drive is . Because the rover has four wheels, turning in-place involves wheel slippage. This is referred to as a skid-steering design. 
+
+(high variance in odometry tick count readings)
+
+forked from %https://github.com/jfstepha/differential-drive
+
+modified to use EncCount messages
+
+\subsection{diff\_tf}
+The diff\_tf node 
+modified to not publish a transform
+We use a simple
 rolling average with the kinematics equations for a differential drive
 robot (an approximation of our skid-steering rover), where the two imaginary
 wheels on both side of the rover are assumed to 'exist' at an average position
@@ -57,43 +97,11 @@ position and velocity of our rover, which we publish in an Odometry message.
 This odometry message is essentially dead reckoning, and is one of the inputs
 fused into the state estimation node. 
 
-types of arduino memory: SRAM, flash
-save space by storing string constants in flash memory rather than sram
-%http://answers.ros.org/users/4478/wolf/
-%https://github.com/strothmw/rosserial
-
-also manually tweaked input and output buffers in ros.h, and included my own custom message type, EncCount
-
-\subsection{rosserial\_python}
-runs on laptop, on other side of serial connection. has to match baud rate. uses /dev/arduino port. just takes serial communications and actually publishes the messages coming from the arduino, also forwards the messages the arduino sketch subscribes to over serial, and only those messages.
-
-\subsection{range\_converter}
-ping sensor at ultrasound frame
-
-Adjust code for conversion of ultrasonic sensor ping times to distance, to take into account the ambient air temperature
-If an echo has been received, then the speed of sound in air in m/s, \(C_{air}\), is calculated using the current air temperature in Celsius \(T_C\):
-\[C_{air} = 331.5 + (0.6 * T_C)*\]
-
-Multiplying \(C_{air}\) by the duration of the timed output pulse gives the estimated distance of the first object in front of the sensor.
-
-Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
-
-\section{Differential\_drive package}
-
-Differential drive vs skid steering
-wheels can slip
-(high covariance?)
-
-forked from %https://github.com/jfstepha/differential-drive
-
-modified to 
-
-\subsection{diff\_tf}
 produce odometry messages from encoder ticks
 
 encoder ticks per meter must be calibrated
 
-covariance
+covariance matrix
 
 \subsection{virtual\_joystick}
 generate twist messages, like the ROS navigation stack would
@@ -140,17 +148,39 @@ Android gyroscope readings tell us the angular velocity of the rover, but are re
 covariance matrices
 
 \subsection{How to use}
-networking bridge
+usb tethering
 on linux
 
 
 \section{robot\_localization package}
 %http://docs.ros.org/kinetic/api/robot_localization/html/
 
-state estimation
+package for state estimation
+
+\cite{robot_localization_paper}
+
 \subsection{Data Format Conventions}
 REP-103 and REP-105 for conventions
 true north, magnetic declination
+
+
+
+
+\section{auto\_rover}
+custom package
+this is where custom message type, EncCount is defined, and header files are created
+\subsection{EncCount} \label{sectionEncCount}
+
+\subsection{range\_converter}
+ping sensor at ultrasound frame
+
+Adjust code for conversion of ultrasonic sensor ping times to distance, to take into account the ambient air temperature
+If an echo has been received, then the speed of sound in air in m/s, \(C_{air}\), is calculated using the current air temperature in Celsius \(T_C\):
+\[C_{air} = 331.5 + (0.6 * T_C)*\]
+
+Multiplying \(C_{air}\) by the duration of the timed output pulse gives the estimated distance of the first object in front of the sensor.
+
+Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
 
 \subsection{}
 First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_tf node, and IMU message from phone node. Produces a fused estimate of odometry.
@@ -161,12 +191,3 @@ Second ekf\_localization node fuses the gps and odometry outputs from the previo
 
 
 \cite{robot_localization_paper}
-
-\section{Results}
-
-Used virtual\_joystick node with other differential\_drive control nodes to drive rover around a parking lot. Recorded data into a ROS bag file, which is ...
-
-here is route fitted on top of satellite image of that parking lot:
-
-\subsection{Remarks}
-final remarks on data and results, what went wrong, etc.
