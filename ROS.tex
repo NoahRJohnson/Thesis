@@ -3,37 +3,38 @@
 \section{Overview}
 The Robot Operating System (ROS) is a meta operating system for open-source robotics.
 
-package management
+It provides package management, an asynchronous messaging framework between processes
 
-asynchronous messaging between components
+All software components in this project communicate using the asynchronous, distributed framework supported by ROS.
+
+\subsection{Nodes}
+Processes in ROS are known as nodes.
 
 \subsection{Messages}
+Messages are data structures which contain some amount of named data fields.
 publishing and subscribing messages
 
 \subsection{Topics}
-All software components in this project communicate using the asynchronous, distributed framework supported by ROS.
+Messages are published to certain topic names. Processes subscribe to these topic names, and receive all messages sent on those names. Any number of processes may publish or subscribe to a topic, making this a many-to-many communication protocol.
 
-many to many
+The ROS Master acts like a DNS server, giving nodes references to each other. Let's use an example. Assume node A starts publishing messages to topic "/foo". When node A begins publishing, it will register that fact with the ROS master. If node B wants to subscribe to that same topic, it will communicate its intent to the ROS master. The master will then go through its list of all publishers to that topic, and inform them of node B's desire. In this case, node A is the only publisher, so the master will tell node A what TCP/IP socket to send its data to when it publishes to the "/foo" topic. From then on, when node A publishes a message to "/foo", it will go through its list of nodes subscribed to it, and send a copy of its message to each of those sockets.
 
-ROS Master, like a DNS server
-node to node, TCP/IP sockets
+Running nodes create a graph based on which nodes send data to which other nodes.
 
 \subsection{Packages}
-contain nodes, message definitions, and service files
+Packages are collections of related ROS resources to perform some function. They often include node source code, built executables, message definitions, and launch files.
+
 There are also meta-packages which are, simply enough, collections of related packages.
 
-\subsection{Nodes}
-processes
-
 \subsection{Launch Files}
-XML launch files
-systems get complicated, with dozens of nodes
-nobody wants to go through and manually start all those up, so it makes sense to streamline and aggregate startup (launch) files for all of them in the same place
-allows bringing multiple nodes up at once, and also specifying their parameters in YAML files
+Launch files are simply XML files which define several nodes to be run at the same time. Robotics systems grow large quickly, and dozens of nodes may need to be run to perform some task. Manually starting all of those nodes would be tedious, and launch files save that time. They also allow easy configuration and parameter specification for each node. Parameters are often stored separately in files using the YAML syntax, and loaded dynamically into the launch files. This allows one to bring a node up or down simply by modifying a launch file, but never losing all of the configuration settings for that node.
 
 \subsection{Frames}
-coordinate axes
-reference frames
+Frames are a set of reference coordinate axes.
+
+A common starting frame is the base\_link frame, which has its origin at the center of a robotic chassis. The x-axis of the base\_link frame points forward, the y-axis points to the robot's left, and the z-axis goes straight up above the robot.
+
+
 position and orientation
 quaternion vectors represent orientation
 messages have frame\_ids detailing which frame they are in
@@ -46,6 +47,7 @@ broadcasting transforms
 
 \subsection{User defined packages}
 auto\_rover package
+Defines launch files, configuration files, message definition for EncCount, and a single range\_converter node. 
 
 
 \section{rosserial} \label{sectionRosSerial}
@@ -77,45 +79,74 @@ We'll choose a standard baud rate of 28,800 to more than double that for some br
 rosserial\_python is one host package of rosserial, which acts as a bridge between the Arduino and the ROS network. It runs a node on the laptop which communicates with the Arduino using the rosserial protocol. It automatically handles setup, communication with the ROS master, subscription, and publishing on behalf of the Arduino. When launched, the serial node must be configured to use the same baud rate as the Arduino: 28,800. It must also be configured to connect to whichever serial port name the Arduino uses. For simplicity, a symbolic link was created using a udev rule on the laptop, to ensure that the port name will always be accessible as "/dev/arduino". %https://www.clearpathrobotics.com/2015/01/arduino-ros/
 
 \section{differential\_drive}
-The differential\_drive package was created by Jon Stephan to create a simple interface for controlling a differential-drive robot \cite{}. Differential drive is . Because the rover has four wheels, turning in-place involves wheel slippage. This is referred to as a skid-steering design. 
+The differential\_drive package was created by Jon Stephan to create a simple interface for controlling a differential wheeled robot \cite{}. Such a robot uses a two-wheeled system where both wheels are on a common axis, but each wheel is driven independently. Turning is achieved by lowering the velocity of one wheel compared to the other.
 
-(high variance in odometry tick count readings)
+Because the rover has four wheels, turning necessarily involves slippage of one or more wheels. This is known as a skid-steering system, due to the skidding of the wheels. When wheels slip, they move without rotating. This causes error in the quadrature encoder values, and makes it difficult to properly estimate the distance the rover has traveled. Despite this flaw, this project's rover is modeled as a differentially steered robot for the purposes of dead reckoning, due to the simplicity of the kinematic model. 
 
-forked from %https://github.com/jfstepha/differential-drive
+\subsection{diff\_odom} \label{sectionOdomPublishing}
 
-modified to use EncCount messages
+Odometry messages are a type of ROS message used for navigation. They represent an estimate of the position and velocity of the rover at a certain time. The diff\_odom node subscribes to encoder tick data, and uses that data to calculate and publish an Odometry message to the "odometry/wheel" topic. The Odometry messages contain estimates of the rover's position, orientation, and linear and angular velocity with a timestamp. This node is a modified version of the diff\_tf node from the differential\_drive package, changed to use the custom EncCount message type, set appropriate covariance values, and not publish an odom->base\_link transform. This transform is published by the EKF node after fusing all sensor data, which is described in section \ref{sectionRobotLocalization}.
 
-\subsection{diff\_tf}
-The diff\_tf node 
-modified to not publish a transform
-We use a simple
-rolling average with the kinematics equations for a differential drive
-robot (an approximation of our skid-steering rover), where the two imaginary
-wheels on both side of the rover are assumed to 'exist' at an average position
-of the two actual wheels. This average then gives us an estimate of the
-position and velocity of our rover, which we publish in an Odometry message.
-This odometry message is essentially dead reckoning, and is one of the inputs
-fused into the state estimation node. 
+\begin{figure}[h]
+	\caption{\cite{differentialSteeringPaper}}
+	\centering
+	\includegraphics{diff_drive}
+	\label{figDiffDrive}
+\end{figure}
 
-produce odometry messages from encoder ticks
+First, let's take a look at the standard theory for differential wheeled robots. Figure \ref{figDiffDrive} shows a simple two-wheeled robot making a left turn of \(\theta\) radians around some point. We assume the robot is one rigid body, and that each wheel maintains a constant velocity along the turn. This assumption of zero acceleration is obviously violated in the real world, but robots with a small mass and relatively powerful motors are able to approximate it well. \cite{differentialSteeringPaper}
 
-encoder ticks per meter must be calibrated
+\(r\) is the turning radius for the left wheel, and \((r+b)\) is the turning radius for the right wheel, where \(b\) is the distance between wheels. Using the formula for arc length, we know the distance traveled by the right and left wheels. Define a point M to be at the midpoint of the two wheels. This point will then travel an arc length of \((r+(b/2)) * \theta \). We can manipulate \(s_L\) and \(s_R\) to produce the following two equations.
+\begin{equation} \label{eqDiffSM}
+s_M = ((r+(b/2)) * \theta = (s_L + s_R) / 2
+\end{equation}
+\begin{equation} \label{eqDiffTheta}
+\theta = (s_R - s_L) / b
+\end{equation}
 
-covariance matrix
+Equation \ref{eqDiffSM} gives the distance the center of the robot travels over the turn, in terms of the distance the two wheels traveled. Dividing this distance by the elapsed time it took to make the turn, gives an estimate of the instantaneous velocity of the robot at the end of the turn. Similarly, equation \ref{eqDiffTheta} calculates the angle of the turn using the distance the two wheels traveled. Dividing \(\theta\) by the elapsed time gives the angular velocity of the robot.
 
-\subsection{virtual\_joystick}
-generate twist messages, like the ROS navigation stack would
+Both calculations make use of the distance traveled by the two wheels. The two quadrature motor encoders attached to the rover's front wheels give a certain number of counts per revolution, and the wheel circumference is given from the diameter. Thus the distance traveled can be surmised from the difference between the encoder ticks counted in the last sensor update, and those in the most recent update. This node uses these values to calculate the rover's angular and linear velocity. Only the angular velocity along the rover's z-axis is reported; the angular velocities along the other axes are assumed to be zero. Because a differentially steered robot can only move in the direction of its fixed wheels, the linear velocity is reported along the base\_link x axis, which faces forward from the rover's midpoint.
+
+The Odometry message includes a six by six covariance matrix for the linear and angular velocities along all three axes. These covariances give the EKF node an idea of how much to trust these velocity estimates. Since only two velocities are calculated, reasonable constant variances squared for those two values are filled in along the matrix's diagonal. Every other element is set to zero, since they are ignored by the filter. 
+
+Because dead reckoning estimates are naturally noisy and drift quickly, this project's EKF ignores the pose element of this node's Odometry message entirely. Therefore we don't bother with calculating the positional update estimate, or its covariance matrix.
+
+This node is configured to publish Odometry messages at a rate equal to the Arduino's sensor update rate. If it published at a slower rate, then some resolution would be lost as the distance traveled is calculated from the difference between the most recent tick count, and the tick count used in the calculation of the prior Odometry estimate.
+
+Though the number of encoder ticks per meter may be calculated from the encoders' specification and the diameter of the wheels, it is a good idea to manually calibrate the number of encoder ticks per meter, and pass this as a configurable parameter to this node. This helps account for sources of error. The ticks per meter can easily be calibrated by moving the Arduino one meter, while counting the number of encoder ticks.
 
 \subsection{twist\_to\_motors}
-translate twist messages to motor velocities for each motor channel, publish those
+Many ROS navigation packages produce Twist messages to command robotic platforms. The Twist message includes a linear and angular velocity, which the rover is expected to match, as a subfunction of some path following algorithm. The differential\_drive package uses the twist\_to\_motors node to translate Twist messages into individual motor velocities for each motor channel. 
 
+Taking into account the differentially steered conditions, this node only considers the linear velocity along the rover's x axis, and the angular velocity around the rover's z-axis. Let's refer to these as \(x'\) and \(\theta '\), respectively. Let \(b\) once again be the distance between the rover's wheels. Let \(L'\) and \(R'\) be the velocity of the left and right wheels. From equation \ref{eqDiffSM}, we know that
+\begin{equation*}
+x' = (L' + R') / 2
+\end{equation*}
+and from equation \ref{eqDiffTheta} we know that
+\begin{equation*}
+\theta ' = (R' - L') / b
+\end{equation*}
+
+This is a system of two equations with two unknowns, \(L'\) and \(R'\). Solving this system gives us: 
+\begin{multline*}
+L' = x' - (b * \theta ') / 2 \\
+R' = x' + (b * \theta ') / 2
+\end{multline*}
+
+This node performs this conversion, and publishes wheel velocities to the "lwheel\_vtarget" and "rwheel\_vtarget" topics. 
 
 \subsection{pid\_velocity}
-translate motor velocities to actual motor commands, which rosserial\_python will transmit over serial to the arduino
+The pid\_velocity node creates a  proportional-integral-derivative (PID) controller which uses encoder feedback to translate motor velocities to actual motor R/C pulse commands. While the appropriate R/C servo command to reach a desired velocity could be estimated from the Sabertooth motor driver's datasheet, this would be the theoretical value and wouldn't take into account real-world sources of error such as uneven terrain, high traction, wind drag, etc. Therefore a control loop which utilizes real-time feedback is preferable.
 
-\subsection{Encoder Calibration}
+Two of these nodes are run, one for each motor channel. One node subscribes to the topic "lwheel\_vtarget", and publishes commands to "/cmd/left", while the other node subscribes to "rwheel\_vtarget", and publishes to "/cmd/right". The Arduino node, through its bridge, is subscribed to these two topics and handles their messages appropriately.
 
-\subsection{PID Parameter Tuning}
+PID controllers work by adjusting their output according an error term, which is the difference between the current feedback and the desired value. This error, the integral of all past error terms, and the estimated error of this derivative are all combined into a weighted sum. This sum then acts as the new output of the system.
+
+This means that PID controllers have three parameters: \(K_p\), \(K_i\), and \(K_d\). These parameters must be manually tuned for optimal use of the controller. The tuning procedure involves zeroing out \(K_i\) and \(K_d\), and slowly increasing \(K_p\) until oscillation is observed in the control loop. Once a limit is found, set \(K_p\) to half of it. Then tune \(K_i\) and lastly \(K_d\), in the same fashion. 
+
+\subsection{virtual\_joystick}
+For manual driving of the rover, the differential\_drive package provides a joystick node, which brings up a simple GUI. This app allows the user to drag their mouse along a simple two-dimensional axis representing a desired linear and angular velocity, and publishes the corresponding Twist message. This is useful for manual testing of the rover, but will not needed once autonomous navigation is fully functional. This node requires installation of PySide, the python binding for the Qt framework.
 
 \section{Ros Sensors App}
 Android app to publish IMU and GPS data from a smartphone.
@@ -124,6 +155,7 @@ phone frame
 
 \subsection{GPS}
 GPS receivers background
+coastguard broadcasts fix message for gps, don't have hardware to access that though
 
 navsatfix message
 covariance matrix
@@ -152,7 +184,7 @@ usb tethering
 on linux
 
 
-\section{robot\_localization package}
+\section{robot\_localization} \label{sectionRobotLocalization}
 %http://docs.ros.org/kinetic/api/robot_localization/html/
 
 package for state estimation
@@ -183,7 +215,7 @@ Multiplying \(C_{air}\) by the duration of the timed output pulse gives the esti
 Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
 
 \subsection{}
-First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_tf node, and IMU message from phone node. Produces a fused estimate of odometry.
+First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_odom node (section \ref{sectionOdomPublishing}), and IMU message from phone node. Produces a fused estimate of odometry.
 
 navsat\_transform\_node takes in odometry message from first ekf node, which is the robot’s current position estimate in the frame specified by its start location. It also takes in the navsatfix and imu messages from the phone, and fuses all these to produce a different odometry estimate which is the gps data converted to the coordinates of the robot's world frame.
 

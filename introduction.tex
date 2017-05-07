@@ -15,3 +15,16 @@ can't use because the rover will be outdoors during the day and the sun gives of
 LIDAR - state of the art
 
 And LIDAR sensors would be too costly. constrained by cheap hardware, and the inability to use IR or LIDAR sensors.
+
+\section{Thesis Structure}
+This thesis is organized as follows.
+
+Chapter 2 covers the probability theory behind the extended kalman filter, which is an iterative update algorithm used to fuse noisy sensor data into a local state estimate for the rover. It may be skipped if you aren't interested in the mathematical details.
+
+Chapter 3 describes the hardware components used in this project, their connections, and other considerations of the design.
+
+Chapter 4 continues the description of physical connections with respect to the Arduino board used, but begins to describe the software which runs on that board and how it interfaces with the rest of the system.
+
+Chapter 5 gives a brief overview of the Robot Operating System (ROS), and how it's used in this project. It then meanders through every software process used, and how they communicate through ROS.
+
+Chapter 6 finishes up with a brief mention of how far the project got, what more needs to be done to complete it, and limitations of the current design.

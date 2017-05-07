@@ -28,6 +28,12 @@ travel in a straight line from one GPS node to another
 \section{Project Limitations}
 how this project is limited
 
+robot is heavy enough that acceleration must be considered in the diff drive kinematics
+
+approximation of skid steering as diff drive. wheel slippage makes those kinematic equations untenable.
+
+refine covariance matrices, especially for odometry estimate
+
 introduction of a camera, but attaching a webcam directly to the chassis of the robot would be troublesome to work with, sense there would be no shock absorption and the video frames would wobble.
 
 Integration of GPS data into position estimate causes discrete jumps, may make it unsuitable for use in the navigation stack. Solution: ditch GPS, use range data from ultrasonic sensor with amcl

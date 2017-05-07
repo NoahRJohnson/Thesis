@@ -2079,9 +2079,11 @@
     <bcf:citekey order="28">encoderBlog</bcf:citekey>
     <bcf:citekey order="29">encoderBlog</bcf:citekey>
     <bcf:citekey order="30">gammonInterrupts</bcf:citekey>
-    <bcf:citekey order="32">robot_localization_paper</bcf:citekey>
-    <bcf:citekey order="33">robot_localization_paper</bcf:citekey>
-    <bcf:citekey order="34">fig_ros_control</bcf:citekey>
+    <bcf:citekey order="32">differentialSteeringPaper</bcf:citekey>
+    <bcf:citekey order="33">differentialSteeringPaper</bcf:citekey>
+    <bcf:citekey order="34">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="35">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="36">fig_ros_control</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty/global" type="entry" sortscheme="nty" sortnamekeyscheme="global">
   <bcf:sorting>
