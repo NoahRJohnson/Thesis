@@ -29,11 +29,18 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{graphicx} % package to manage images
+\usepackage{subcaption} % package for subfigures
 \graphicspath{ {figures/} }
 \usepackage{wrapfig}
 \usepackage{listings} %code extracts
 \usepackage{xcolor} %custom colours
 \usepackage{mdframed} %nice frames
+\usepackage{multicol} % for tables
+\usepackage{multirow} % for tables
+\usepackage{makecell} % for tables
+\usepackage{diagbox} % for tables
+\usepackage{xcolor,colortbl} % for coloring tables
+
 
 \definecolor{light-gray}{gray}{0.95} %the shade of grey that stack exchange uses
 
@@ -69,7 +76,8 @@
 \include{Hardware}
 \include{Arduino}
 \include{ROS}
-\include{FutureSteps}
+\include{FieldTest}
+\include{Conclusion}
 %\appendix
 %\include{appa}
 %\include{appb}

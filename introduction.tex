@@ -1,14 +1,18 @@
 \chapter{Introduction}
 
-\section{Goal}
+%Goal
+This rover 
 Create a cheap outdoors autonomous robot. Given a 'map' of the New College campus, this robot should be able to navigate from one outdoors location to another using footpaths. In doing so, it should dynamically avoid obstacles such as people, and recalculate alternate routes when a route is unexpectedly blocked.
 
-\section{Navigation}
+%navigation
 intro to the concept of navigation
 
 Since a map with GPS coordinates is provided, this is not Simultaneous Localization and Mapping (SLAM), but a simplified navigation problem. 
 
-\section{Choice of Sensors}
+% design
+The rover base consists of a Lynxmotion rover, an Arduino, and a Sabertooth motor driver. Sensors available include two quadrature rotary encoders, a mobile phone, and an ultrasonic distance sensor. The Arduino acts as a low-level robotic controller, publishing wheel encoder and range data, and accepting motor velocity commands. An Android app publishes IMU and GPS data from the mobile phone, and the laptop fuses these readings into a state estimation of pose and velocity using an extended Kalman filter.
+
+%Choice of Sensors
 IR, Microsoft Kinect
 can't use because the rover will be outdoors during the day and the sun gives off ambient IR radiation.
 
@@ -16,15 +20,15 @@ LIDAR - state of the art
 
 And LIDAR sensors would be too costly. constrained by cheap hardware, and the inability to use IR or LIDAR sensors.
 
-\section{Thesis Structure}
-This thesis is organized as follows.
+%Thesis Structure
+The rest of this thesis is organized as follows.
 
-Chapter 2 covers the probability theory behind the extended kalman filter, which is an iterative update algorithm used to fuse noisy sensor data into a local state estimate for the rover. It may be skipped if you aren't interested in the mathematical details.
+Chapter 2 covers the probability theory behind the extended kalman filter, which is an iterative update algorithm used to fuse noisy sensor data into a local state estimate for the rover. It may be skipped if one is not interested in the mathematical details.
 
-Chapter 3 describes the hardware components used in this project, their connections, and other considerations of the design.
+Chapter 3 describes the hardware components used in this project, their electrical connections, and the general design.
 
-Chapter 4 continues the description of physical connections with respect to the Arduino board used, but begins to describe the software which runs on that board and how it interfaces with the rest of the system.
+Chapter 4 continues the description of physical connections with respect to the Arduino circuit board, and also describes the software which runs on that board and how it interfaces with the rest of the system.
 
 Chapter 5 gives a brief overview of the Robot Operating System (ROS), and how it's used in this project. It then meanders through every software process used, and how they communicate through ROS.
 
-Chapter 6 finishes up with a brief mention of how far the project got, what more needs to be done to complete it, and limitations of the current design.
+Chapter 6 describes the results of an experimental test conducted with the rover. Limitations of and extensions to the current design are also mentioned.

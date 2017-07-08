@@ -2056,10 +2056,10 @@
     <bcf:citekey order="5">probabilisticRobotics</bcf:citekey>
     <bcf:citekey order="6">probabilisticRobotics</bcf:citekey>
     <bcf:citekey order="7">probabilisticRobotics</bcf:citekey>
-    <bcf:citekey order="8">fig_lynxmotion_rover</bcf:citekey>
-    <bcf:citekey order="9">fig_lynxmotion_rover</bcf:citekey>
-    <bcf:citekey order="10">fig_sabertooth</bcf:citekey>
-    <bcf:citekey order="11">fig_sabertooth</bcf:citekey>
+    <bcf:citekey order="8">probabilisticRobotics</bcf:citekey>
+    <bcf:citekey order="9">ekfTut</bcf:citekey>
+    <bcf:citekey order="10">fig_lynxmotion_rover</bcf:citekey>
+    <bcf:citekey order="11">fig_lynxmotion_rover</bcf:citekey>
     <bcf:citekey order="12">fig_ping</bcf:citekey>
     <bcf:citekey order="13">fig_ping</bcf:citekey>
     <bcf:citekey order="14">pingDocumentation</bcf:citekey>
@@ -2072,18 +2072,28 @@
     <bcf:citekey order="21">pingDocumentation</bcf:citekey>
     <bcf:citekey order="22">newPing</bcf:citekey>
     <bcf:citekey order="23">fig_optical_encoders</bcf:citekey>
-    <bcf:citekey order="24">encoderBlog</bcf:citekey>
+    <bcf:citekey order="24">fig_optical_encoders</bcf:citekey>
     <bcf:citekey order="25">encoderBlog</bcf:citekey>
     <bcf:citekey order="26">encoderBlog</bcf:citekey>
     <bcf:citekey order="27">encoderBlog</bcf:citekey>
     <bcf:citekey order="28">encoderBlog</bcf:citekey>
     <bcf:citekey order="29">encoderBlog</bcf:citekey>
-    <bcf:citekey order="30">gammonInterrupts</bcf:citekey>
-    <bcf:citekey order="32">differentialSteeringPaper</bcf:citekey>
-    <bcf:citekey order="33">differentialSteeringPaper</bcf:citekey>
-    <bcf:citekey order="34">robot_localization_paper</bcf:citekey>
-    <bcf:citekey order="35">robot_localization_paper</bcf:citekey>
-    <bcf:citekey order="36">fig_ros_control</bcf:citekey>
+    <bcf:citekey order="30">encoderBlog</bcf:citekey>
+    <bcf:citekey order="31">encoderBlog</bcf:citekey>
+    <bcf:citekey order="32">gammonInterrupts</bcf:citekey>
+    <bcf:citekey order="34">differentialSteeringPaper</bcf:citekey>
+    <bcf:citekey order="35">differentialSteeringPaper</bcf:citekey>
+    <bcf:citekey order="36">differentialSteeringPaper</bcf:citekey>
+    <bcf:citekey order="37">fig_rpy</bcf:citekey>
+    <bcf:citekey order="38">fig_rpy</bcf:citekey>
+    <bcf:citekey order="39">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="40">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="41">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="42">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="43">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="44">gps_visualizer</bcf:citekey>
+    <bcf:citekey order="45">robot_localization_paper</bcf:citekey>
+    <bcf:citekey order="46">robot_localization_paper</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty/global" type="entry" sortscheme="nty" sortnamekeyscheme="global">
   <bcf:sorting>

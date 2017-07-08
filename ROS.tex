@@ -1,7 +1,9 @@
 \chapter{ROS}
 
+The software system controlling the rover and processing the incoming sensor data is built on top of the Robot Operating System (ROS). ROS is a meta operating system for open-source robotics. It provides an asynchronous messaging framework for multiple processes across multiple machines to communicate, 
+
 \section{Overview}
-The Robot Operating System (ROS) is a meta operating system for open-source robotics.
+
 
 It provides package management, an asynchronous messaging framework between processes
 
@@ -22,12 +24,12 @@ The ROS Master acts like a DNS server, giving nodes references to each other. Le
 Running nodes create a graph based on which nodes send data to which other nodes.
 
 \subsection{Packages}
-Packages are collections of related ROS resources to perform some function. They often include node source code, built executables, message definitions, and launch files.
+Packages are collections of related ROS resources which perform some function. They often include source code for nodes, executable utilities, message definitions, and launch files.
 
-There are also meta-packages which are, simply enough, collections of related packages.
+There are also meta-packages which collect various related packages.
 
 \subsection{Launch Files}
-Launch files are simply XML files which define several nodes to be run at the same time. Robotics systems grow large quickly, and dozens of nodes may need to be run to perform some task. Manually starting all of those nodes would be tedious, and launch files save that time. They also allow easy configuration and parameter specification for each node. Parameters are often stored separately in files using the YAML syntax, and loaded dynamically into the launch files. This allows one to bring a node up or down simply by modifying a launch file, but never losing all of the configuration settings for that node.
+Launch files are XML files which define several nodes to be run at the same time. Robotics systems grow large quickly, and dozens of nodes may need to be run to perform some task. Manually starting all of those nodes would be tedious, and launch files automate that process. They also allow convenient parameter specification for each node. Parameters are often stored separately in files using the YAML syntax, and loaded dynamically into the launch files.
 
 \subsection{Frames}
 Frames are a set of reference coordinate axes.
@@ -44,6 +46,12 @@ conversions between frames
 handled by the ROS package tf
 broadcasting transforms
 
+\subsection{Data Format Conventions}
+REP-103 and REP-105 for conventions
+true north, magnetic declination
+
+ENU convention
+
 
 \subsection{User defined packages}
 auto\_rover package
@@ -51,7 +59,7 @@ Defines launch files, configuration files, message definition for EncCount, and 
 
 
 \section{rosserial} \label{sectionRosSerial}
-Communication between the Arduino and laptop is handled with the ROS metapackage rosserial. Different client packages support different client machines, such as embedded linux devices, or different microcontroller boards. These client packages create local support libraries or header files on those machines, which use a serialization protocol to send and receive ROS messages over a serial port. On the other side of the serial connection, host packages run a bridging node which communicates with the ROS network on behalf of the client machine. Subscribed topics have their messages serialized and sent to the client machine, and outgoing messages from the client are de-serialized and published. 
+Communication between the Arduino and laptop is handled with the ROS meta-package rosserial. Different client packages support different client machines, such as embedded linux devices, or different microcontroller boards. These client packages create local support libraries or header files on those machines, which use a serialization protocol to send and receive ROS messages over a serial port. On the other side of the serial connection, host packages run a bridging node which communicates with the ROS network on behalf of the client machine. Subscribed topics have their messages serialized and sent to the client machine, and outgoing messages from the client are de-serialized and published. 
 
 \subsection{rosserial\_arduino}
 rosserial\_arduino is one client package of rosserial, which creates an Arduino library to provide bare-bones ROS support to sketches. The sketch running on this project's Uno board uses this library to publish sensor data as messages, and subscribe to motor command topics.
@@ -129,12 +137,12 @@ and from equation \ref{eqDiffTheta} we know that
 \end{equation*}
 
 This is a system of two equations with two unknowns, \(L'\) and \(R'\). Solving this system gives us: 
-\begin{multline*}
+\begin{align*}
 L' = x' - (b * \theta ') / 2 \\
 R' = x' + (b * \theta ') / 2
-\end{multline*}
+\end{align*}
 
-This node performs this conversion, and publishes wheel velocities to the "lwheel\_vtarget" and "rwheel\_vtarget" topics. 
+This node uses these equations to calculate the appropriate wheel velocities from the incoming Twist message, and publishes those velocities to the "lwheel\_vtarget" and "rwheel\_vtarget" topics. 
 
 \subsection{pid\_velocity}
 The pid\_velocity node creates a  proportional-integral-derivative (PID) controller which uses encoder feedback to translate motor velocities to actual motor R/C pulse commands. While the appropriate R/C servo command to reach a desired velocity could be estimated from the Sabertooth motor driver's datasheet, this would be the theoretical value and wouldn't take into account real-world sources of error such as uneven terrain, high traction, wind drag, etc. Therefore a control loop which utilizes real-time feedback is preferable.
@@ -143,10 +151,10 @@ Two of these nodes are run, one for each motor channel. One node subscribes to t
 
 PID controllers work by adjusting their output according an error term, which is the difference between the current feedback and the desired value. This error, the integral of all past error terms, and the estimated error of this derivative are all combined into a weighted sum. This sum then acts as the new output of the system.
 
-This means that PID controllers have three parameters: \(K_p\), \(K_i\), and \(K_d\). These parameters must be manually tuned for optimal use of the controller. The tuning procedure involves zeroing out \(K_i\) and \(K_d\), and slowly increasing \(K_p\) until oscillation is observed in the control loop. Once a limit is found, set \(K_p\) to half of it. Then tune \(K_i\) and lastly \(K_d\), in the same fashion. 
+The weights in this sum are three constant parameters: \(K_p\), \(K_i\), and \(K_d\). These parameters must be manually tuned to the target system for optimal use of the controller. The tuning procedure involves zeroing out \(K_i\) and \(K_d\), and slowly increasing \(K_p\) until oscillation is observed in the control loop. Once a limit is found, set \(K_p\) to half of it. Then tune \(K_i\) and lastly \(K_d\), in the same fashion. 
 
-\subsection{virtual\_joystick}
-For manual driving of the rover, the differential\_drive package provides a joystick node, which brings up a simple GUI. This app allows the user to drag their mouse along a simple two-dimensional axis representing a desired linear and angular velocity, and publishes the corresponding Twist message. This is useful for manual testing of the rover, but will not needed once autonomous navigation is fully functional. This node requires installation of PySide, the python binding for the Qt framework.
+\subsection{virtual\_joystick} \label{sectionJoystick}
+For manual driving of the rover, the differential\_drive package provides a joystick node, which brings up a simple GUI. This app allows the user to drag their mouse along a simple two-dimensional axis representing a desired linear and angular velocity, and publishes the corresponding Twist message. This is useful for manual testing of the rover, but will not be needed once autonomous navigation is fully functional. This node requires installation of PySide, the python binding for the Qt framework.
 
 \section{Ros Sensors App}
 Android app to publish IMU and GPS data from a smartphone.
@@ -187,13 +195,17 @@ on linux
 \section{robot\_localization} \label{sectionRobotLocalization}
 %http://docs.ros.org/kinetic/api/robot_localization/html/
 
-package for state estimation
+\begin{wrapfigure}{r}{0.5\textwidth} \label{fig:rpy}
+	\caption{Roll, Pitch, and Yaw \cite{fig_rpy}}
+	\centering
+	\includegraphics[width=0.25\textwidth]{rpy}
+\end{wrapfigure}
+
+This package created by Tom Moore implements the extended Kalman Filter, the mathematical details of which were described in section \ref{sectionEKF}. The package keeps track of a 15-dimensional vector describing the rover's state: \((x,y,z,\Phi,\theta,\Psi,x',y',z',\Phi ',\theta ',\Psi ', x'', y'', z'')\). In this state vector  \(\Phi\), \(\theta\), \(\Psi\) represent roll, pitch, and yaw, respectively. These Euler angles describe rotation about the X, Y, and Z axes. See Figure \ref{fig:rpy}.
+
 
 \cite{robot_localization_paper}
 
-\subsection{Data Format Conventions}
-REP-103 and REP-105 for conventions
-true north, magnetic declination
 
 
 
@@ -214,7 +226,29 @@ Multiplying \(C_{air}\) by the duration of the timed output pulse gives the esti
 
 Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
 
-\subsection{}
+\subsection{EKF Configuration}
+Contains launch files which control rover's movement, and state estimation
+
+Assumes a two-dimensional environment, which cause z,roll, pitch, roll', pitch', z', z'' to all be fixed at 0. IMU roll, pitch, and GPS altitude measurements are ignored.
+
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\newcolumntype{b}{>{\columncolor{white}}c}
+\begin{table}
+	\caption {Sensor Configurations \cite{robot_localization_paper}}
+	\label{tab:configs}
+	\begin{center}
+		\begin{tabular}{|l|a|b|a|b|a|b|a|b|a|b|a|b|a|b|a|} \hline
+			\theadfont\diagbox[width=11em]{Sensor}{State\\Variable}&
+			\textbf{\(x\)} & \textbf{\(y\)} & \textbf{\(z\)} & \textbf{\(\Phi\)} & \textbf{\(\theta\)} & \textbf{\(\Psi\)} & \textbf{\(x'\)} & \textbf{\(y'\)} & \textbf{\(z'\)} & \textbf{\(\Phi '\)} & \textbf{\(\theta '\)} & \textbf{\(\Psi '\)} & \textbf{\(x''\)} & \textbf{\(y''\)} & \textbf{\(z''\)} \\ \hline
+			%\thead{Second\\column}&\thead{Third\\column}\\    \hline
+			Wheel Encoders & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 \\    \hline
+			IMU & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 \\ \hline
+			GPS & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\ \hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
 First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_odom node (section \ref{sectionOdomPublishing}), and IMU message from phone node. Produces a fused estimate of odometry.
 
 navsat\_transform\_node takes in odometry message from first ekf node, which is the robot’s current position estimate in the frame specified by its start location. It also takes in the navsatfix and imu messages from the phone, and fuses all these to produce a different odometry estimate which is the gps data converted to the coordinates of the robot's world frame.

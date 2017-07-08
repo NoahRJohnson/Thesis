@@ -1,6 +1,8 @@
 \chapter{Theory}
 
-Robots estimate their environment stochastically, and so probability theory is vital to understanding their inner workings. First we will review the necessary theory, and then we will examine a class of algorithms for recursive state estimation.
+EKFs are important to this thesis
+
+Robots estimate their environment stochastically, and so probability theory is vital to understanding their inner workings. First we will review the necessary theory, and then we will examine a class of algorithms for recursive state estimation. For a more in-depth look at this material, see Probabilistic Robotics \cite{probabilisticRobotics}.
 
 \section{Probability Background}
 Discrete random variables have a finite output space of possible values that may be observed. Let X be a random variable, then we define the probability that we observe value x from X as \( p(X = x) \equiv p(x)\). Since x is arbitrary, this defines a probability distribution. For every random variable X, we have
@@ -84,12 +86,15 @@ Once we have models for both the \textit{state transition probability} and \text
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Example}
+%\subsection{Example}
 
 
 
 
-\section{Kalman Filter}
+%\section{Kalman Filter}
 
 
-\subsection{Extended Kalman Filter}
+\section{Extended Kalman Filter} \label{sectionEKF}
+
+
+\cite{ekfTut}

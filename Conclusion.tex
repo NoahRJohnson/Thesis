@@ -1,0 +1,23 @@
+\chapter{Conclusion}
+
+\section{Project Limitations}
+how this project is limited
+
+robot is heavy enough that acceleration must be considered in the diff drive kinematics
+
+approximation of skid steering as diff drive. wheel slippage makes those kinematic equations untenable.
+
+refine covariance matrices, especially for odometry estimate
+
+introduction of a camera, but attaching a webcam directly to the chassis of the robot would be troublesome to work with, sense there would be no shock absorption and the video frames would wobble.
+
+Integration of GPS data into position estimate causes discrete jumps, may make it unsuitable for use in the navigation stack. Solution: ditch GPS, use range data from ultrasonic sensor with amcl
+
+magnetometer in car parking lot - bad idea, throws off heading from IMU!
+
+\section{Possible Extensions}
+% cover possible extensions (raspberry pi instead of arduino, gps and imu chip instead of phone, stabilizing platform for video camera, video camera, actually using sonar range data as a slow form of laser data) and as far as software goes, mention ros controller to replace the differential drive package, and of course the ROS navigation stack to facilitate actual autonomous navigation rather than just localization.
+
+%Possible idea for simple navigation: GPS Waypoints. GPS markers form a linearized path travel in a straight line from one GPS node to another
+% Could create waypoints using google maps, manually creating waypoints, and exporting to kml file, turning that into a csv file maybe?
+%https://www.google.com/maps/d/edit?mid=1wKgTvF7i7Xdpi42cw1ffAOrGDVw&ll=27.38460862376806%2C-82.56151826455687&z=17

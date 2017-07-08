@@ -2,7 +2,8 @@
 
 %TODO: Mention initial parts list was inspired by http://www.instructables.com/id/Autonomous-Lynxmotion-Rover/
 \section{Specific Hardware Used} \label{sectionSpecificHardware}
-The specific hardware used in this project was chosen to minimize cost while still producing a vehicle capable of navigating rough, uneven outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500.
+The specific hardware used in this project was chosen to minimize cost while still producing a vehicle capable of navigating rough, uneven outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500, with most of that cost coming from the rover's base.
+
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
 	\caption{Lynxmotion 4WD Rover \cite{fig_lynxmotion_rover}}
 	\centering
@@ -10,16 +11,16 @@ The specific hardware used in this project was chosen to minimize cost while sti
 	\label{FigLynxmotionRover}
 \end{wrapfigure}
 
-The mobile base used is the Lynxmotion A4WD1 Rover, see Figure \ref{FigLynxmotionRover}. This kit comes with four 200 RPM DC gear motors, 100 PPR motor encoders, and 4.75" diameter wheels. The chassis consists of four aluminum side brackets, and two polycarbonate panels on the top and bottom. The rover is rated to carry up to 5 pounds.
+The mobile base chosen was the Lynxmotion A4WD1 Rover, shown in Figure \ref{FigLynxmotionRover}. It was purchased as a kit including four 200 RPM DC gear motors, 100 PPR motor encoders, and 4.75" diameter wheels. The chassis consists of four aluminum side brackets, and two polycarbonate panels on the top and bottom. This kit makes up the bulk of the cost of the project. It was chosen for its larger wheels with relatively strong motors, making it robust to uneven terrain and ramps, ideal for outdoor use. The rover can support up to 5 lbs overall, and a second level which stacks on top is available as an extension. This second level would be an ideal place to put a tablet or small laptop.
 
-\begin{wrapfigure}{l}{0.25\textwidth}
-	\caption{Sabertooth 2x12 \cite{fig_sabertooth}}
-	\centering
-	\includegraphics[width=0.25\textwidth]{sabertooth-dual-regenerative-motor-driver_3}
-	\label{FigSabertooth}
-\end{wrapfigure}
+One downside of this robot base is the fixed position of the four wheels. The lack of a turnable axis means the rover must steer by varying the speed of its motors. This causes wheel slippage in one or more of the wheels when the rover turns, meaning the motor encoders won't see the distance traveled. This ultimately causes errors in the robot's localization. Choosing a different base which uses only two driven wheels would avoid this issue, and likely be even cheaper. However, such a choice must be balanced with the robot's suitability for outdoor use, and room for all on-board components.
 
-The motors are controlled by a Sabertooth dual-channel 12A 6V-24V regenerative motor driver, see Figure \ref{FigSabertooth}. This motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in an 18650 battery case which has been soldered to act as a battery pack with two 18650 cells in series. The battery cells are individually charged before use with a NiteCore-i2-V2014 li-ion charger.
+The motors are controlled by a Sabertooth dual-channel 12A 6V-24V regenerative motor driver. The lithium ion battery over-discharge protection.
+protects from back EMF causing a current flow
+
+There is a 5A version of this motor driver, which should have been purchased to save \$20.
+
+This motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in an 18650 battery case. This case is made out of a battery holder soldered in series to act as a pack. The battery cells were individually charged before each use by a NiteCore-i2-V2014 li-ion charger.
 
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
 	\caption{PING))) Ultrasonic Sensor \cite{fig_ping}}
@@ -38,6 +39,8 @@ On top of the rover is the PING))) ultrasonic distance sensor (see Figure \ref{F
 \end{wrapfigure}
 
 At the center of the rover is an Arduino Uno R3, see Figure \ref{FigArduino}. This microcontroller board handles several important tasks. It tells the motor driver what speed to set its two output channels to, and directly controls the panning motion of the standard Parallax servo. It also acts as a go-between for the digital output of the sensors on the rover and a laptop. It's connected to this laptop via a USB cable, which powers the board and allows communication over a serial port. Motor encoder values and ultrasonic range data are transmitted to the laptop, and motor power commands are received. An Arduino prototyping shield is stacked on top to allow re-usability of the board.
+
+Only two encoders end up being used, due to a limit of the microcontroller board used. Choosing a different model with more hardware interrupt pins would improve accuracy, without drastically increasing the price.
 
 The specific laptop used in this project is the Dell Inspiron 3531, which has a quad core 2.16 GHz processor, and 4 GB of RAM. Any personal laptop running Ubuntu or Debian could be used here, and additional computational resources would be beneficial. However, this laptop was a personal work machine and already available to use at no additional cost. The laptop is used as the main processing unit for the navigation logic.
 
@@ -80,7 +83,7 @@ Connecting electronics on the rover to the laptop via USB means the processing l
 
 \begin{figure}[p] 
 	\caption{Connections Made}
-	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio, angle=90]{RoverDesign}
+	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio, angle=0]{RoverDesign}
 	\centering
 	\label{figRoverDesign}
 	\text{This image was created with Fritzing}
