@@ -1,61 +1,52 @@
 \chapter{ROS}
 
-The software system controlling the rover and processing the incoming sensor data is built on top of the Robot Operating System (ROS). ROS is a meta operating system for open-source robotics. It provides an asynchronous messaging framework for multiple processes across multiple machines to communicate, 
+The software system controlling the rover and processing the incoming sensor data is built on top of the Robot Operating System (ROS). ROS is a meta operating system for open-source robotics. It provides an asynchronous messaging framework for multiple processes across multiple machines to communicate, package management for shared robotics libraries, and a method of dealing with multiple coordinate systems.
 
-\section{Overview}
+\section{ROS Basics}
 
+\subsection{Messaging}
 
-It provides package management, an asynchronous messaging framework between processes
+Processes in ROS are known as nodes. Nodes communicate by publishing and subscribing to certain communication channels called topics. The data passed over these topics are various classes of rigidly defined data structures called messages. Messages often contain meta-data such as a timestamp and sequence number, in addition to the data of interest.
 
-All software components in this project communicate using the asynchronous, distributed framework supported by ROS.
+When a node publishes a message to a particular topic, all nodes subscribed to that topic receive a copy. Any number of processes may publish or subscribe to a topic, making this a many-to-many communication protocol. Under the hood, messaging between nodes is handled by the ROS Master node, which acts like a DNS server and must be running for the ROS system to function. 
 
-\subsection{Nodes}
-Processes in ROS are known as nodes.
-
-\subsection{Messages}
-Messages are data structures which contain some amount of named data fields.
-publishing and subscribing messages
-
-\subsection{Topics}
-Messages are published to certain topic names. Processes subscribe to these topic names, and receive all messages sent on those names. Any number of processes may publish or subscribe to a topic, making this a many-to-many communication protocol.
-
-The ROS Master acts like a DNS server, giving nodes references to each other. Let's use an example. Assume node A starts publishing messages to topic "/foo". When node A begins publishing, it will register that fact with the ROS master. If node B wants to subscribe to that same topic, it will communicate its intent to the ROS master. The master will then go through its list of all publishers to that topic, and inform them of node B's desire. In this case, node A is the only publisher, so the master will tell node A what TCP/IP socket to send its data to when it publishes to the "/foo" topic. From then on, when node A publishes a message to "/foo", it will go through its list of nodes subscribed to it, and send a copy of its message to each of those sockets.
-
-Running nodes create a graph based on which nodes send data to which other nodes.
+Let's use a simple example to understand. Assume node A wants to publish messages to topic "/foo". It registers this intent with the Master. Then, say node B subscribes to topic "/foo". It too will register this with the Master. When node B does so, the Master node will notify all registered publishers on the "/foo" topic. Node A will receive the TCP/IP socket address of Node B, and store it. Then each time node A publishes a message to "/foo", it will iterate through its list of subscribed nodes, and send message data to each node's address.
 
 \subsection{Packages}
-Packages are collections of related ROS resources which perform some function. They often include source code for nodes, executable utilities, message definitions, and launch files.
+Packages are collections of related ROS resources which all work together to perform some specific task. They often include source code for nodes, executable utilities, message definitions, and launch files. There are also meta-packages which collect various related packages.
 
-There are also meta-packages which collect various related packages.
+Launch files are XML files which define several nodes to be run at once. Robotics systems grow large quickly, and require many nodes. This project ended up using 12 nodes throughout its launch files. Manually starting all of those nodes would be tedious, and launch files automate that process. They also allow convenient parameter specification for each node. Parameters are stored separately in files using the YAML syntax, and loaded dynamically into the launch files.
 
-\subsection{Launch Files}
-Launch files are XML files which define several nodes to be run at the same time. Robotics systems grow large quickly, and dozens of nodes may need to be run to perform some task. Manually starting all of those nodes would be tedious, and launch files automate that process. They also allow convenient parameter specification for each node. Parameters are often stored separately in files using the YAML syntax, and loaded dynamically into the launch files.
+\subsection{Frames and Transforms}
 
-\subsection{Frames}
+\begin{wrapfigure}{r}{0.5\textwidth}
+	\caption{Frames}
+	\centering
+	\includegraphics[width=0.5\textwidth]{frames}
+	\label{fig:frames}
+\end{wrapfigure}
+
+Robotics systems include many moving parts.
 Frames are a set of reference coordinate axes.
+There are two main pieces to consider when asking where the rover is: its position, and its orientation.
 
 A common starting frame is the base\_link frame, which has its origin at the center of a robotic chassis. The x-axis of the base\_link frame points forward, the y-axis points to the robot's left, and the z-axis goes straight up above the robot.
 
+The phone frame has its origin at the center of the phone.
 
-position and orientation
-quaternion vectors represent orientation
-messages have frame\_ids detailing which frame they are in
+Local frame called the odom frame, named as it is because it contains local odometry output. Origin is wherever the rover begins.
 
-\subsection{Transforms}
-conversions between frames
-handled by the ROS package tf
-broadcasting transforms
-
-\subsection{Data Format Conventions}
-REP-103 and REP-105 for conventions
-true north, magnetic declination
-
-ENU convention
+The map frame is similar to the odom frame, but we use it as a world-fixed frame. The origin is also where the rover begins, but the axes are rotated so that X points east, Y points north, and Z points "up", or tangential to the earth's surface. 
 
 
-\subsection{User defined packages}
-auto\_rover package
-Defines launch files, configuration files, message definition for EncCount, and a single range\_converter node. 
+% http://www.ros.org/reps/rep-0103.html
+% http://www.ros.org/reps/rep-0105.html
+These definitions follow ROS conventions specified in REP-103 and REP-105. \cite{}
+
+Transforms are conversions between frames.
+Transforms are broadcast through the ROS network to all nodes. 
+
+See Figure \ref{fig:frames} for a handy map of all transforms between frames broadcast in this system, where arrows indicate a transform.
 
 
 \section{rosserial} \label{sectionRosSerial}
@@ -64,7 +55,7 @@ Communication between the Arduino and laptop is handled with the ROS meta-packag
 \subsection{rosserial\_arduino}
 rosserial\_arduino is one client package of rosserial, which creates an Arduino library to provide bare-bones ROS support to sketches. The sketch running on this project's Uno board uses this library to publish sensor data as messages, and subscribe to motor command topics.
 
-Every time the sketch wishes to update the laptop with its newest sensor readings, it publishes three messages. First the servo angle in degrees is published to the "/ping/angleDeg" topic, as a standard Int8 message. This message just contains a single data field: an 8-bit signed integer. Next the echo time in microseconds is published to the "/ping/timeUS" topic, as a standard UInt16 message which contains a single 16 bit data field representing an unsigned integer. Lastly the two encoder tick counts are both placed into a single custom message called EncCount, and published to the "/odom/encTicks" topic. This custom message type has two 32 bit fields, one for each encoder. This message type will be further explained in section \ref{sectionEncCount}.
+Every time the sketch wishes to update the laptop with its newest sensor readings, it publishes three messages. First the servo angle in degrees is published to the "/ping/angleDeg" topic, as a standard Int8 message. This message just contains a single data field: an 8-bit signed integer. Next the echo time in microseconds is published to the "/ping/timeUS" topic, as a standard UInt16 message which contains a single 16 bit data field representing an unsigned integer. Lastly the two encoder tick counts are both placed into a single custom message called EncCount, and published to the "/odom/encTicks" topic. This custom message type has two 32 bit fields, one for each encoder.
 
 When the sketch is waiting between updates, it continually listens to the serial port for motor commands. These commands are Int8 messages on the "/cmd/left" or "/cmd/right" topics, which the sketch subscribes to. When these messages are found in the serial input buffer, a short callback function is executed, which writes the R/C pulse command to the proper motor channel.
 
@@ -118,11 +109,11 @@ Both calculations make use of the distance traveled by the two wheels. The two q
 
 The Odometry message includes a six by six covariance matrix for the linear and angular velocities along all three axes. These covariances give the EKF node an idea of how much to trust these velocity estimates. Since only two velocities are calculated, reasonable constant variances squared for those two values are filled in along the matrix's diagonal. Every other element is set to zero, since they are ignored by the filter. 
 
-Because dead reckoning estimates are naturally noisy and drift quickly, this project's EKF ignores the pose element of this node's Odometry message entirely. Therefore we don't bother with calculating the positional update estimate, or its covariance matrix.
+Because dead reckoning estimates are naturally noisy and drift quickly, this project's EKF ignores the pose element of this node's Odometry message entirely. Therefore we don't bother computing the positional update estimate, or its covariance matrix.
 
 This node is configured to publish Odometry messages at a rate equal to the Arduino's sensor update rate. If it published at a slower rate, then some resolution would be lost as the distance traveled is calculated from the difference between the most recent tick count, and the tick count used in the calculation of the prior Odometry estimate.
 
-Though the number of encoder ticks per meter may be calculated from the encoders' specification and the diameter of the wheels, it is a good idea to manually calibrate the number of encoder ticks per meter, and pass this as a configurable parameter to this node. This helps account for sources of error. The ticks per meter can easily be calibrated by moving the Arduino one meter, while counting the number of encoder ticks.
+Though the number of encoder ticks per meter may be calculated from the encoders' specification and the diameter of the wheels, it is a good idea to manually calibrate the number of encoder ticks per meter, and specify this as a configurable parameter to this node. This helps account for sources of error in the physical system. The ticks per meter can easily be calibrated by moving the Arduino one meter, and comparing the start and end tick count.
 
 \subsection{twist\_to\_motors}
 Many ROS navigation packages produce Twist messages to command robotic platforms. The Twist message includes a linear and angular velocity, which the rover is expected to match, as a subfunction of some path following algorithm. The differential\_drive package uses the twist\_to\_motors node to translate Twist messages into individual motor velocities for each motor channel. 
@@ -157,79 +148,44 @@ The weights in this sum are three constant parameters: \(K_p\), \(K_i\), and \(K
 For manual driving of the rover, the differential\_drive package provides a joystick node, which brings up a simple GUI. This app allows the user to drag their mouse along a simple two-dimensional axis representing a desired linear and angular velocity, and publishes the corresponding Twist message. This is useful for manual testing of the rover, but will not be needed once autonomous navigation is fully functional. This node requires installation of PySide, the python binding for the Qt framework.
 
 \section{Ros Sensors App}
-Android app to publish IMU and GPS data from a smartphone.
+In order to access the smartphone's IMU and GPS data, an Android app was written to act as a ROS node. All sensor data messages published are from the phone's frame, which is centered 2 inches to the right of the base\_link frame.
 
-phone frame
+The app makes use of phone tethering supported by the Android OS, which allows one to access the internet over a smartphone's data plan. However, this feature is used only as a convenient way for the phone and laptop to communicate locally over USB.
 
 \subsection{GPS}
-GPS receivers background
-coastguard broadcasts fix message for gps, don't have hardware to access that though
+The Global Positioning System (GPS) was developed by the U.S. Department of Defense, and has been operational since 1995. It currently involves 31 satellites orbiting the earth in such a way that four or more satellites are always visible from most land masses. A standard GPS receiver uses a process called trilateration to pinpoint its location. \cite{}
 
-navsatfix message
-covariance matrix
+The coastguard broadcasts fix message for gps, however the smartphone used in this project does not have the required hardware to access that.
+
+The GPS coordinates reported by the phone node are actually using assisted GPS (AGPS). In AGPS, cell phone towers use a phone's signal strength to help determine its position, and they also transmit almanac and ephemeris info to phones using a data connection. The hardware also reports an uncertainty estimate.\cite{}
+
+The phone node publishes gps messages roughly every five seconds. The covariance matrix is only filled in along the diagonal, using the uncertainty estimate reported by the Android OS.
 
 \subsection{IMU}
-IMU chips background: magnetometers, accelerometers, gyroscopes
-what a quaternion is
 
-publishes IMU message
+Inertial Measurement Units (IMUs) are small chips that measure linear and angular movement. A digital accelerometer measures linear acceleration in all three dimensions, while a digital gyroscope measures angular velocity around each axis. Lastly, a digital magnetometer measures magnetic strength along each axis.
 
-IMU messages are expected to be in ENU reference frame, instead of NED.
+IMU chips often report in NED frame, however the Android API works within the ENU frame, as expected.
 
-Android TYPE\_ROTATION\_VECTOR sensor fuses magnetometer and accelerometer data to produce an quaternion representation of an orientation in the ENU frame.
+A covariance matrix was once again filled out on only the diagonals, with accelerometer and gyroscope variances hard-coded at the values at 0.04 \(\frac{m}{s^2}\) and 0.004 \(\frac{rad}{s}\). \cite{Nexus4Paper}
+Magnetometer variance was guessed at 0.01 \(\frac{deg}{s}\)
 
-% https://source.android.com/devices/sensors/sensor-types#rotation_vector
-Android accelometer readings tell us the linear acceleration of the rover, but are reported with respect to the local orientation of the phone, and so the node converts them to the ENU orientation before publishing them, in the phone frame (which just specifies a static translation)
-
-Android gyroscope readings tell us the angular velocity of the rover, but are reported with respect to the local axes of the phone. However, our rover operates solely in 2D, and so we aren't interested in angular velocities of roll or pitch. And since the phone lays face-up on top of the rover, the phone's local z axis is the same as the ENU up axis, and so we don't need to transform the gyroscope reading for rad/sec rotation of yaw.
-
-
-
-covariance matrices
-
-\subsection{How to use}
-usb tethering
-on linux
-
+All of this information is encapsulated in a ROS IMU message, which is published at approximately 5 Hz. 
 
 \section{robot\_localization} \label{sectionRobotLocalization}
 %http://docs.ros.org/kinetic/api/robot_localization/html/
 
-\begin{wrapfigure}{r}{0.5\textwidth} \label{fig:rpy}
-	\caption{Roll, Pitch, and Yaw \cite{fig_rpy}}
+\begin{wrapfigure}{r}{0.5\textwidth} 
+	\caption{Roll, Pitch, and Yaw
+	\label{fig:rpy}
+	\cite{fig_rpy}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{rpy}
 \end{wrapfigure}
 
-This package created by Tom Moore implements the extended Kalman Filter, the mathematical details of which were described in section \ref{sectionEKF}. The package keeps track of a 15-dimensional vector describing the rover's state: \((x,y,z,\Phi,\theta,\Psi,x',y',z',\Phi ',\theta ',\Psi ', x'', y'', z'')\). In this state vector  \(\Phi\), \(\theta\), \(\Psi\) represent roll, pitch, and yaw, respectively. These Euler angles describe rotation about the X, Y, and Z axes. See Figure \ref{fig:rpy}.
+This package created by Tom Moore implements the extended Kalman Filter, the mathematical details of which were described in section \ref{sectionEKF}. The filter keeps track of a 15-dimensional vector describing the rover's state: \((x,y,z,\Phi,\theta,\Psi,x',y',z',\Phi ',\theta ',\Psi ', x'', y'', z'')\). In this state vector  \(\Phi\), \(\theta\), and \(\Psi\) represent roll, pitch, and yaw, respectively. These Euler angles describe rotation about the X, Y, and Z axes. See Figure \ref{fig:rpy}. \cite{robot_localization_paper}
 
-
-\cite{robot_localization_paper}
-
-
-
-
-
-\section{auto\_rover}
-custom package
-this is where custom message type, EncCount is defined, and header files are created
-\subsection{EncCount} \label{sectionEncCount}
-
-\subsection{range\_converter}
-ping sensor at ultrasound frame
-
-Adjust code for conversion of ultrasonic sensor ping times to distance, to take into account the ambient air temperature
-If an echo has been received, then the speed of sound in air in m/s, \(C_{air}\), is calculated using the current air temperature in Celsius \(T_C\):
-\[C_{air} = 331.5 + (0.6 * T_C)*\]
-
-Multiplying \(C_{air}\) by the duration of the timed output pulse gives the estimated distance of the first object in front of the sensor.
-
-Subscribes to /ping/timeUS and /ping/angleDeg topics, reads servo angle and ping time from those topics. Those messages sent from arduino to minimize amount of data being sent over serial. Then this node converts that to a distance in meters and an ultrasound -> base\_link transform. transform uses static translation from center of rover to center of PING))) sensor, as well as instantaneously changing rotation at each ping snapshot.
-
-\subsection{EKF Configuration}
-Contains launch files which control rover's movement, and state estimation
-
-Assumes a two-dimensional environment, which cause z,roll, pitch, roll', pitch', z', z'' to all be fixed at 0. IMU roll, pitch, and GPS altitude measurements are ignored.
+This project takes advantage of the fact that the rover is a ground vehicle and makes the assumption that all terrain is perfectly flat, and that the rover is moving in a two-dimensional environment. Thus z,roll, pitch, and their derivatives in the state vector are fixed at 0. This configuration should be changed for more elaborate testing, however this eliminates an entire axis of noise from GPS altitude and IMU measurements. 
 
 \definecolor{Gray}{gray}{0.85}
 \newcolumntype{a}{>{\columncolor{Gray}}c}
@@ -242,18 +198,19 @@ Assumes a two-dimensional environment, which cause z,roll, pitch, roll', pitch',
 			\theadfont\diagbox[width=11em]{Sensor}{State\\Variable}&
 			\textbf{\(x\)} & \textbf{\(y\)} & \textbf{\(z\)} & \textbf{\(\Phi\)} & \textbf{\(\theta\)} & \textbf{\(\Psi\)} & \textbf{\(x'\)} & \textbf{\(y'\)} & \textbf{\(z'\)} & \textbf{\(\Phi '\)} & \textbf{\(\theta '\)} & \textbf{\(\Psi '\)} & \textbf{\(x''\)} & \textbf{\(y''\)} & \textbf{\(z''\)} \\ \hline
 			%\thead{Second\\column}&\thead{Third\\column}\\    \hline
-			Wheel Encoders & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0 \\    \hline
-			IMU & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 1 \\ \hline
+			Wheel Encoders & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 0 \\    \hline
+			IMU & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 1 & 1 & 1 & 0 \\ \hline
 			GPS & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\ \hline
 		\end{tabular}
 	\end{center}
 \end{table}
 
-First ekf\_localization node takes in odometry estimate from wheel encoders via diff\_odom node (section \ref{sectionOdomPublishing}), and IMU message from phone node. Produces a fused estimate of odometry.
+Table \ref{tab:configs} shows which state variables each sensor affects, where a 1 indicates that that sensor gives a reading for the corresponding state variable, and a 0 indicates that it does not.
 
-navsat\_transform\_node takes in odometry message from first ekf node, which is the robot’s current position estimate in the frame specified by its start location. It also takes in the navsatfix and imu messages from the phone, and fuses all these to produce a different odometry estimate which is the gps data converted to the coordinates of the robot's world frame.
+The rover's system runs three nodes from this package.
 
-Second ekf\_localization node fuses the gps and odometry outputs from the previous two nodes into a final odometry message which is the final estimation of the robot's current state.
+The first node runs an EKF which fuses wheel odometry from the diff\_odom node (section \ref{sectionOdomPublishing}) with IMU data from the phone node. It produces a state estimate in the local odom frame.
 
+The second node provides a helper service that transforms gps coordinates into the local frame, and vice versa. Its main use is to transform gps messages coming from the phone node into coordinates in the map frame.
 
-\cite{robot_localization_paper}
+The third and final node fuses the odometry output from the first and second nodes together, producing a final  state estimate in the map frame. This estimate is discontinuous, as the output from the second node is positional coordinates, which this node uses to instantaneously adjust the rover's \(x\) and \(y\) state variables.
