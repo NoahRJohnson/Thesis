@@ -1,36 +1,41 @@
 \chapter*{Introduction}
 
-%Goal
-This rover 
-Create a cheap outdoors autonomous robot. Given a 'map' of the New College campus, this robot should be able to navigate from one outdoors location to another using footpaths. In doing so, it should dynamically avoid obstacles such as people, and recalculate alternate routes when a route is unexpectedly blocked.
+%intro to the concept of navigation
+Navigation of a robot involves localizing where the robot is with respect to its environment, finding a path from where it currently is to where it would like to be, executing commands to follow that path, and dynamically reacting to obstacles to avoid collisions. While the robot design presented in this thesis is capable of performing all of these tasks, only the first - localization - has been implemented.
 
-%navigation
-intro to the concept of navigation
+% lit review, current state of the field
+In order for a robot to localize itself with respect to its environment, it must either already know its environment via a static map, or dynamically generate a map of its surroundings. This latter approach is known as the simultaneous localization and mapping (SLAM) problem, and the most common algorithms used to solve it involve the use of ranging sensors. Ranging sensors measure the distance between the robot and surrounding obstacles.
 
-Since a map with GPS coordinates is provided, this is not Simultaneous Localization and Mapping (SLAM), but a simplified navigation problem. 
+In this project a static map was assumed to exist, where the map used is the Universal Transverse Mercator (UTM) 2D projection of a coordinate system onto the Earth's surface. A GPS receiver was used for partial noisy global localization information, and localization was implemented with respect to this map. Ranging sensors giving landmark detection on a smaller scale were not used.
+
+%Dead reckoning is used to create a local position estimate. That's what EKF does. This estimate is then updated based on the rover's position in comparison to nearby landmarks in the dynamically generated map.
+
+%When you don't know where you are with respect to any global reference, i.e. you are a kidnapped robot dropped in a dark room with no idea where you are (there is no presupplied map), then the problem of discovering where you are while mapping your environment is known as simultaneous localization and mapping (SLAM).
+
+% this project's place in the field and goal
+
+%Since a map with GPS coordinates is provided, this is not SLAM, but a simplified navigation problem. 
+
+The ultimate goal of this project is to create a mobile robot capable of navigating the New College of Florida campus during the day, with limited financial resources. While that end goal has not yet been reached, appreciable progress in designing and constructing the rover and its associated control software has been made. Localization with respect to a static map was implemented, and integration of existing range data into dynamic map generation is the next logical step. It is the author's hope that further work with this hardware will be completed at New College of Florida.
+
+% importance of this goal (broader access to field)
+The design itself, while not groundbreaking, is carefully laid out in the hope that other students or individuals interested in experimenting with autonomous navigation will be able to replicate the construction. The cheap material cost may help ease the financial burden for those who wish for hands-on experience with this material.
 
 % design
-The rover base consists of a Lynxmotion rover, an Arduino, and a Sabertooth motor driver. Sensors available include two quadrature rotary encoders, a mobile phone, and an ultrasonic distance sensor. The Arduino acts as a low-level robotic controller, publishing wheel encoder and range data, and accepting motor velocity commands. An Android app publishes IMU and GPS data from the mobile phone, and the laptop fuses these readings into a state estimation of pose and velocity using an extended Kalman filter.
+The rover design consists of a four-wheeled skid-steering aluminum rover base, an Arduino microcontroller, and motor driver. It is controlled by a laptop connected via USB. Sensors available include two motor rotary encoders, a mobile smartphone, and an ultrasonic distance sensor. The Arduino acts as a low-level robotic controller, sending wheel encoder and range data to the laptop, and accepting motor velocity commands. An Android app publishes IMU and GPS data from the mobile phone, and the laptop fuses these readings into a state estimation of pose and velocity using an extended Kalman filter.
 
-%Choice of Sensors
-IR, Microsoft Kinect
-can't use because the rover will be outdoors during the day and the sun gives off ambient IR radiation.
+% Choice of Sensors
+The sensors available are limited in precision, but were chosen for their cheap cost and wide availability.
 
-LIDAR - state of the art
+Rather than purchasing separate IMU and GPS chips to interface with the Arduino microcontroller, the built-in sensors on a smartphone were utilized. These built-in sensors are less accurate than their external counterparts, but in many cases present no additional cost to acquire for a college student.
 
-And LIDAR sensors would be too costly. constrained by cheap hardware, and the inability to use IR or LIDAR sensors.
+Infrared (IR) sensors are cheap ranging sensors common in small robotics projects. However, this rover was designed to work outdoors during the day, and the ambient IR radiation from the sun makes these sensors unusable. Meanwhile light detection and ranging (LIDAR) sensors are highly expensive ranging sensors which are considered the industry standard for high resolution, high accuracy point cloud mapping in a 360 degree arc.
+
+In order to satisfy the robust and financial constraints of this thesis, IR and LIDAR range sensors are out of the picture. So a third option, the ultrasonic sensor, was chosen. Ultrasonic sensors are medium-distance ranging sensors which emit high-frequency sonic pulses and measure the echo time. They are capable of detecting objects in a cone shape in front of them. They have reduced accuracy in rain or snow, and can suffer from confusing double echoes. However, they are nearly as inexpensive as IR sensors, and by panning back and forth, can slowly give a 180 degree distance measurement.
 
 %Thesis Structure
-The rest of this thesis is organized as follows.
+The rest of this thesis is structured as follows.
 
-Chapter 2 covers the probability theory behind the extended kalman filter, which is an iterative update algorithm used to fuse noisy sensor data into a local state estimate for the rover. It may be skipped if one is not interested in the mathematical details.
-
-Chapter 3 describes the hardware components used in this project, their electrical connections, and the general design.
-
-Chapter 4 continues the description of physical connections with respect to the Arduino circuit board, and also describes the software which runs on that board and how it interfaces with the rest of the system.
-
-Chapter 5 gives a brief overview of the Robot Operating System (ROS), and how it's used in this project. It then meanders through every software process used, and how they communicate through ROS.
-
-Chapter 6 describes the results of an experimental test conducted with the rover. Limitations of and extensions to the current design are also mentioned.
+Chapter 1 covers the probability theory behind the extended Kalman filter, which is an iterative algorithm used to fuse noisy sensor data into a local state estimate for the rover. It may be skipped if one is not interested in the mathematical details. Chapter 2 describes the hardware components used in this project, their electrical connections, and the general design. Chapter 3 continues the description of physical connections with respect to the Arduino circuit board, and also describes the software which runs on that board and how it interfaces with the rest of the system. Chapter 4 gives a brief overview of the Robot Operating System (ROS), and how it's used in this project. It then touches on the distinct software processes that make up the system. Chapter 5 describes the results of an experimental localization test run conducted with the rover.
 
 \addcontentsline{toc}{chapter}{Introduction}

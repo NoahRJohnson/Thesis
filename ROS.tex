@@ -19,6 +19,35 @@ Launch files are XML files which define several nodes to be run at once. Robotic
 
 \subsection{Frames and Transforms}
 
+
+
+Robotics systems include many moving parts. In order to keep track of those parts and their relation to one another, many different coordinate axes are needed. In ROS, these coordinate axes are called frames.
+
+%There are two main pieces to consider when asking where the rover is: its position, and its orientation.
+
+% http://www.ros.org/reps/rep-0103.html
+% http://www.ros.org/reps/rep-0105.html
+The frame names and definitions used in this project follow the ROS standards specified in REP-103 and REP-105 \cite{}.
+
+A common starting frame is the base\_link frame, which has its origin at the center of a robotic chassis. This frame is attached to the rover, and moves as it moves. The X axis of the base\_link frame points forward, the y-axis points to the robot's left, and the z-axis goes straight up above the robot.
+
+Next we define a frame for the smartphone, simply called phone. The phone frame has its origin at the center of the phone, roughly two inches to the right of the base\_link frame. The frame is once again attached, and moves with the smartphone. However, while the origin shifts, the orientation of the axes stays constant with respect to the earth. The X axis always points east, its Y axis points north, and its Z axis points up towards the sky, or tangential to the earth's surface. This axis orientation is referred to as the ENU convention (East-North-Up).
+
+Another frame needed is a locally fixed frame. The origin and orientation of this frame will be the same as the base\_link frame initially: origin at the center, X axis forward, Y to the left, and Z up. However, this frame will not be rigidly attached to the rover body, and will not move or rotate as the rover moves. Thus it will be able to keep track of the rover's total movement from its starting position.
+
+We will define two such locally fixed frames: odom and map. We will use the map frame to keep track of the position estimate of the rover using all available sensors, including GPS. The GPS measurements filtered through the EKF will cause this estimate to jump around erratically, making it discontinuous. We will use the odom frame to keep track of the position estimate of the rover, using all sensors except for the GPS. This position estimate will be smooth and continuous, but the position error will grow unbounded over time.
+
+\begin{figure}[h]
+	\caption{\cite{robot_localization_wiki}}
+	\label{fig:roverFrames}
+	\centering
+	\includegraphics[width=\textwidth]{roverFrames}
+\end{figure}
+
+The UTM (Universal Transverse Mercator) frame defines a frame equal to the axes used by the UTM zone that the rover is currently in. The origin is at the (0,0) point of the UTM zone, and the axes are oriented according to the ENU convention. 
+
+See Figure \ref{fig:roverFrames} for a graphical representation of the rover right when it begins localizing. Notice that at that time, the base\_link, odom, and map frames are all aligned. The phone frame, not pictured, would have the same origin as those three, but its axes would be oriented parallel to the UTM frame's axes. As the rover moves, the base\_link and phone frames would move with it. The base\_link axes would rotate as the rover rotates, and the phone axes would remain oriented as ENU. The odom and map frames would stay fixed at where they began. 
+
 \begin{wrapfigure}{r}{0.5\textwidth}
 	\caption{Frames}
 	\centering
@@ -26,28 +55,7 @@ Launch files are XML files which define several nodes to be run at once. Robotic
 	\label{fig:frames}
 \end{wrapfigure}
 
-Robotics systems include many moving parts.
-Frames are a set of reference coordinate axes.
-There are two main pieces to consider when asking where the rover is: its position, and its orientation.
-
-A common starting frame is the base\_link frame, which has its origin at the center of a robotic chassis. The x-axis of the base\_link frame points forward, the y-axis points to the robot's left, and the z-axis goes straight up above the robot.
-
-The phone frame has its origin at the center of the phone.
-
-Local frame called the odom frame, named as it is because it contains local odometry output. Origin is wherever the rover begins.
-
-The map frame is similar to the odom frame, but we use it as a world-fixed frame. The origin is also where the rover begins, but the axes are rotated so that X points east, Y points north, and Z points "up", or tangential to the earth's surface. 
-
-
-% http://www.ros.org/reps/rep-0103.html
-% http://www.ros.org/reps/rep-0105.html
-These definitions follow ROS conventions specified in REP-103 and REP-105. \cite{}
-
-Transforms are conversions between frames.
-Transforms are broadcast through the ROS network to all nodes. 
-
-See Figure \ref{fig:frames} for a handy map of all transforms between frames broadcast in this system, where arrows indicate a transform.
-
+Transforms are conversions between frames. They are broadcast through the ROS network to all nodes. See Figure \ref{fig:frames} for a handy map of all transforms broadcast in the system, where arrows indicate an available transform from a parent frame to child frame.
 
 \section{rosserial} \label{sectionRosSerial}
 Communication between the Arduino and laptop is handled with the ROS meta-package rosserial. Different client packages support different client machines, such as embedded linux devices, or different microcontroller boards. These client packages create local support libraries or header files on those machines, which use a serialization protocol to send and receive ROS messages over a serial port. On the other side of the serial connection, host packages run a bridging node which communicates with the ROS network on behalf of the client machine. Subscribed topics have their messages serialized and sent to the client machine, and outgoing messages from the client are de-serialized and published. 

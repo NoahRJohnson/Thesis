@@ -3,21 +3,49 @@
 %Project Limitations
 The rover's design has several flaws.
 
-The differential drive model is a rough and messy approximation to the skid steering base, causing large errors in the yaw variable to accumulate quickly in the wheel odometry.
+The differential drive model is a rough and messy approximation to the skid steering base, causing large errors in the yaw state variable to accumulate quickly in the wheel odometry.
 
-refine covariance matrices, especially for odometry estimate
+The covariance matrices should be further refined, especially the wheel odometry and magnetometer variances, which were guessed at.
 
-introduction of a camera, but attaching a webcam directly to the chassis of the robot would be troublesome to work with, sense there would be no shock absorption and the video frames would wobble.
+% Not true? AMCL is also discontinuous, EKF output with GPS takes its place.
+%Integration of GPS data into the position estimate causes discrete jumps, which makes the map frame output of the EKF unsuitable for use in the ROS navigation stack.
 
-Integration of GPS data into position estimate causes discrete jumps, may make it unsuitable for use in the navigation stack. Solution: ditch GPS, use range data from ultrasonic sensor with amcl
+There were several factors which impacted the performance of the phone's magnetometer. The field test was carried out in a parking lot with running cars, which generate magnetic fields. The DC motors when running at high currents also produce a noticeable impact on the phone. If a second level were to be added on top of the rover, the extra distance from the motors could fix this issue.
 
-magnetometer in car parking lot - bad idea, throws off heading from IMU!
+%Original goal:
+%Create a cheap outdoors autonomous robot. Given a 'map' of the New College campus, this robot should be able to navigate from one outdoors location to another using footpaths. In doing so, it should dynamically avoid obstacles such as people, and recalculate alternate routes when a route is unexpectedly blocked.
 
 %Possible Extensions
-% cover possible extensions (raspberry pi instead of arduino, gps and imu chip instead of phone, stabilizing platform for video camera, video camera, actually using sonar range data as a slow form of laser data) and as far as software goes, mention ros controller to replace the differential drive package, and of course the ROS navigation stack to facilitate actual autonomous navigation rather than just localization.
+This project is hoped to be a jumping off point for future development.
+
+The logical next step to improve this project would be to integrate the ultrasonic sensor's range and angle data into the project, as a slower approximation of LIDAR range data, which will allow the system to dynamically generate a map of the immediate area around the rover. Localization can then be performed in real-time with respect to this partial map.
+
+%The most popular algorithm for global localization (i.e., localization including range data) is the adaptive Monte Carlo localization (amcl) system.
+
+
+% not sure if this summary is accurate
+%Amcl is another recursive Bayesian estimator based on Bayes Filter, which represents the state's belief distribution by a cloud of particles. Each particle represents a possible state, and each particle is assigned a probability weight based on the probability that the current sensor readings would be measured, given that that particle state was the true state. It uses random sampling to update its particle cloud over time.
+
+%localization with respect to laser-based map landmarks 
+
+%Range data would be fed into amcl, and it would adjust the 
+%coming from the first EKF node which %outputs continuous local filtered odometry, 
+
+%Its output would also be discontinuous, as recognition of a landmark previously seen will cause discrete jumps in acml's position estimate.
+
+Another possible source of sensor data which could be added to the design is a video feed, either via the laptop's webcam or the smartphone's built-in camera. However, any camera rigidly attached to the frame would suffer from wobbling video frames due to the lack of shock absorbers. Perhaps video stabilization could be used to compensate here, in which case visual odometry could prove useful.
+
+The Arduino microcontroller board chosen in this design could be replaced with a larger model, or by a Raspberry Pi which is a system on a chip which costs - at the time of this writing -roughly \$15 more than the Arduino board, but with additional features such as built-in WiFi and Bluetooth for short-range communication. 
+
+On the software side, the differential\_drive package should eventually be replaced by the diff\_drive\_controller package, which performs the same function but integrates more naturally into the ROS navigation stack.
+
+% gps and imu chip instead of phone, as far as software goes, mention the ROS navigation stack to facilitate actual autonomous navigation rather than just localization.
 
 %Possible idea for simple navigation: GPS Waypoints. GPS markers form a linearized path travel in a straight line from one GPS node to another
 % Could create waypoints using google maps, manually creating waypoints, and exporting to kml file, turning that into a csv file maybe?
 %https://www.google.com/maps/d/edit?mid=1wKgTvF7i7Xdpi42cw1ffAOrGDVw&ll=27.38460862376806%2C-82.56151826455687&z=17
+
+The collection of software used in this project is available online at the following url:
+<https://github.com/NoahRJohnson/AutoRover>.
 
 \addcontentsline{toc}{chapter}{Conclusion}

@@ -28,7 +28,7 @@ In the future this will prove to be a useful tool to compute a posterior probabi
 \subsection{Scenario}
 Now, back to the inner workings of our rover. Consider the general case of a robot which uses some array of sensors to gather information about its environment. Each of these measurements will have some amount of error. The robot wishes to use these measurements to estimate its current state. \cite{probabilisticRobotics}
 
-For simplicity, let's consider the rover to operate in discrete time steps: \(t=0,1,2,...\). Let's encode the robot's current state at time \(t\) in the vector \(x_t = (x_{1_{t-1}}, x_{2_{t-1}}, ... , x_{n_{t-1}})^T\). Similarly, let \(z_t = (z_{1_{t-1}}, z_{2_{t-1}}, ... , z_{n_{t-1}})^T\) represent a sensor measurement at time \(t\). For both of these vectors we will use the notation \(z_{1:t} = z_1, z_2, ..., z_t\).
+For simplicity, let's consider the rover to operate in discrete time steps: \(t=0,1,2,...\). Let's encode the robot's state at time \(t\) in the vector \(x_t = (x_{1_t}, x_{2_t}, ... , x_{n_t})^T\). Similarly, let \(z_t = (z_{1_t}, z_{2_t}, ... , z_{k_t})^T\) represent a sensor measurement at time \(t\). For both of these vectors we will use the compact notation \(a_{1:t} = a_1, a_2, ..., a_t\) to denote the set of all vectors up to time \(t\).
 
 The robot only has access to raw data in the form of \(z_{1:t}\). Thus it cannot ever have perfect knowledge of its true state \(x_t\). It will have to make do by storing a probability distribution assigning a probability to every possible realization of \(x_t\). This pdf will represent the robot's belief in its current state, and should be conditioned on all available data. Thus we'll define the robot's belief distribution to be:
 \begin{equation} \label{eqBel}
@@ -87,22 +87,15 @@ Once we assume the \textit{state transition probability} and \textit{measurement
 \end{algorithm}
 
 %\subsection{Example}
-
-
-
-
-%\section{Kalman Filter}
-
-
 \section{Extended Kalman Filter} \label{sectionEKF}
 
 The most widely used implementation of Bayes Filter is the Extended Kalman Filter (EKF). This filter approximates the pdfs found in Bayes Filter with multi-variate normal distributions. Thus \[bel(x_t) \sim N(x_t; \mu_t,\Sigma_t) = det(2 \pi \Sigma_t)^{-\frac{1}{2}} * exp \{-\frac{1}{2} (x_t - \mu_t)^T \Sigma_t^{-1} (x_t - \mu_t) \}\] where \(\mu_t\) is the mean or best estimate of the state vector, and \(\Sigma_t\) is the covariance matrix representing the confidence in that estimate. The mean and covariance are sufficient to uniquely define the normal  distribution, and so the filter only needs to keep track of two matrices per pdf, making it computationally efficient.
 
-Let \[x_t =  g(x_{t-1}) + \epsilon_t\] be the underlying model given for the state transition pdf, where \(g(x)\) is an arbitrary function, and \(\epsilon_t\) is a Gaussian random vector with mean 0 and covariance \(R_t\).
+Let \[x_t =  g(x_{t-1}) + \epsilon_t\] be the underlying model given for the state transition pdf, where \(g: \mathbb{R}^n \to \mathbb{R}^n\) is an arbitrary function, and \(\epsilon_t\) is a Gaussian random vector, which has mean 0 and covariance \(R_t\).
 
 % Why must we linearize?
 
-We will linearize the model by a first-order Taylor series approximation around the current best estimate, \(\mu_{t-1}\).
+We will linearize this model by a first-order Taylor series approximation around the current best estimate, \(\mu_{t-1}\).
 \begin{multline}
 g(x_{t-1}) \approx g(\mu_{t-1}) + \frac{\partial g(\mu_{t-1})}{\partial x_{t-1}} (x_{t-1} - \mu_{t-1}) \\
 = g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}) \hfill
@@ -112,55 +105,39 @@ G_t = \begin{bmatrix}
 \frac{\partial g_1(\mu_{t-1})}{\partial x_{1_{t-1}}} & \dots & \frac{\partial g_1(\mu_{t-1})}{\partial x_{n_{t-1}}}\\
 \vdots & \ddots & \vdots & \\
 \frac{\partial g_n(\mu_{t-1})}{\partial x_{1_{t-1}}} & \dots & \frac{\partial g_n(\mu_{t-1})}{\partial x_{n_{t-1}}} 
-\end{bmatrix} \] is the Jacobian of \(g\) evaluated at \((\mu_{t-1})\).
-
-Then
+\end{bmatrix} \] is the Jacobian of \(g\) evaluated at \((\mu_{t-1})\). Then rewriting the model, we get
 \begin{equation} \label{eqEKFxtDef}
 x_t \approx g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}) + \epsilon_t
 \end{equation}
-Then the mean of the state transition pdf is 
+and the state transition pdf has mean
 \begin{multline}
 E[x_t] = E[g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}) + \epsilon_t] \\
 = E[g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1})] + E[\epsilon_t] \\
 = E[g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1})] \\
 = g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}) \hfill
 \end{multline}
-
+and covariance
 \begin{multline}
 cov(x_t) = E[(x_t - E[x_t])(x_t - E[x_t])^T] = E[\epsilon_t \epsilon_t^T] \\
 = E[(\epsilon_t - 0)(\epsilon_t - 0)^T] = E[(\epsilon_t - E[\epsilon_t])(\epsilon_t - E[\epsilon_t])^T] \\
 = cov(\epsilon_t) \equiv R_t \hfill
 \end{multline}
-
+and so its Gaussian distribution is
 \(p(x_t \mathbin{\vert} x_{t-1},) \sim N(x_t;g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}),R_t)\)
-
-\begin{multline} \label{eqBelBarLt}
-\overline{bel}(x_t) = \int p(x_t \mathbin{\vert} x_{t-1}) bel(x_{t-1})dx_{t-1} \\
-= det(2 \pi R_t)^{-\frac{1}{2}} det(2 \pi \Sigma_{t-1})^{-\frac{1}{2}} \int [ exp\{-\frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T \\ * R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\} * exp \{-\frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \}dx_{t-1} ] \\
-= \eta \int exp\{-L_t\}dx_{t-1} \hfill
-\end{multline}
-
-where we define
-\begin{multline}
-L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\\
-+ \frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \hfill
-\end{multline}
-
-We want a decomposition \(L_t = L_t(x_{t-1},x_t) + L_t(x_t)\) such that all terms containing \(x_{t-1}\) are collected in \(L_t(x_{t-1},x_t)\). This will allow us to move \(L_t(x_t)\) outside of \(\overline{bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\).
-
-Notice that \(L_t\) is quadratic with respect to \(x_{t-1}\), therefore it has a unimodal maximum at the mean of its distribution, which can be found by setting the first derivative to 0.
 
 \subsection{Matrix Calculus}
 % talk about matrix calculus and vector differentiation. (AB)^T = B^T A^T, (A+B)^T = A^T + B^T, if A is symmetric then so is A^-1, lemmas etc.
-For the rest of this derivation, we will
+For the mathematical derivation of the EKF which lies ahead, we will be working with matrix calculus.
 
-Here we restate some of the elementary matrix calculus results, in the hope that this will aid the unfamiliar reader to follow along.
-\begin{gather*}
+For the benefit of the unfamiliar reader, here we will restate some elementary results which will be needed.
+
+For \(A,B \in \mathbb{R}^{nxn}\):
+\begin{gather}
 (AB)^T = B^T A^T \\
 (A+B)^T = A^T + B^T \\
-\text{if } A^T = A \text{, then we define A to be symmetric} \\
-\text{if } A \text{ is symmetric, then so is } A^{-1} 
-\end{gather*}
+A \text{ is symmetric} \implies A^T = A \\
+A \text{ is symmetric } \implies A^{-1} \text{ is symmetric } 
+\end{gather}
 
 \begin{lemma} \label{lemma1}
 	For \(x \in \mathbb{R} ^n \) and \(A \in \mathbb{R}^{nxn}\), A symmetric,
@@ -168,7 +145,7 @@ Here we restate some of the elementary matrix calculus results, in the hope that
 \end{lemma}
 \begin{proof}
 	\begin{multline*}
-	\text{Let } f(x) = x^T A x \\
+	\text{Define } f: \mathbb{R}^n \to \mathbb{R}, f(x) = x^T A x \\
 	x = \begin{pmatrix}
 	x_1 \\
 	\vdots \\
@@ -191,7 +168,7 @@ Here we restate some of the elementary matrix calculus results, in the hope that
 	\frac{\partial f}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(x+h e_i) - f(x)}{h} = \lim_{h \rightarrow 0} \frac{(x + h e_i)^T A (x + h e_i) - x^T A x}{h} \\
 	= \lim_{h \rightarrow 0} \frac{ x^T A x + h * x^T A e_i + h * e_i^T A x + h^2 * e_i^T A e_i - x^T A x}{h} \\
 	= \lim_{h \rightarrow 0} \frac{ h [x^T A e_i + e_i^T A x + h * e_i^T A e_i]}{h} = \lim_{h \rightarrow 0} ( x^T A e_i + e_i^T A x + h * e_i^T A e_i) \\
-	= x^T A e_i + e_i^T A x = e_i^T A^T x + e_i^T A x \hfill \text{(\(x^T A e_i\) is 1x1, \(\therefore x^T A e_i\) is symmetric)} \\
+	= x^T A e_i + e_i^T A x = e_i^T A^T x + e_i^T A x \hfill \text{(\(x^T A e_i\) is 1x1 \(\therefore x^T A e_i\) is symmetric)} \\
 	= e_i^T ( A^T + A) x  = e_i^T ( A + A) x = e_i^T (2A x) \hfill \text{(by symmetry of A)} \\
 	\text{Which tells us that the \(i^{th}\) component of \(\frac{\partial f}{\partial x} \) is equal to the \(i^{th}\) component of \(2Ax\).} \\
 	\therefore \frac{\partial f}{\partial x} = 2Ax \hfill
@@ -200,7 +177,7 @@ Here we restate some of the elementary matrix calculus results, in the hope that
 
 \begin{lemma} \label{lemma2}
 	For \(x,a \in \mathbb{R}^n \),
-	\(\frac{\partial (x^T a)}{\partial x} = \frac{\partial (a^T x)}{\partial x} = A\)  
+	\(\frac{\partial (x^T a)}{\partial x} = \frac{\partial (a^T x)}{\partial x} = a\)  
 \end{lemma}
 \begin{proof}
 	\begin{multline}
@@ -224,12 +201,52 @@ Here we restate some of the elementary matrix calculus results, in the hope that
 	\end{multline}
 \end{proof}
 
-\begin{lemma} \label{lemmaInversion}
+\begin{lemma}{\textbf{Inversion Lemma \cite{probabilisticRobotics}}} \label{lemmaInversion}
 	
+For \(R \in \mathbb{R}^{nxn}, Q \in \mathbb{R}^{kxk}, P \in \mathbb{R}^{nxk}\) where \(R\), \(Q\), and \(P\) are all invertible:
+\[
+(R + PQP^T)^{-1} = R^{-1} - R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}
+\]
 \end{lemma}
+\begin{proof}
+\begin{multline}
+( R^{-1} - R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}) (R + PQP^T) \\
+= [\underline{R^{-1}R}] + [R^{-1}PQP^T] - [R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T \underline{R^{-1}R}] \\
+- [R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}PQP^T] \\
+= [I] + [R^{-1}PQP^T] - [R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T] \\
+- [R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}PQP^T] \\
+= I + R^{-1}P [QP^T - (Q^{-1} + P^T R^{-1}P)^{-1} P^T \\
+- (Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}PQP^T] \\
+= I + R^{-1}P [QP^T - (Q^{-1} + P^T R^{-1}P)^{-1} \underline{Q^{-1} Q} P^T \\
+- (Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}PQP^T] \\
+= I + R^{-1}P [QP^T - \underline{(Q^{-1} + P^T R^{-1}P)^{-1} (Q^{-1} + P^T R^{-1}P)} Q P^T] \\
+= I + R^{-1}P [\underline{QP^T - Q P^T}] = I \hfill
+\end{multline}
+\end{proof}
+
 
 \subsection{Derivation}
-Note that in the following derivation of the EKF, the covariance matrices \(R_t\) and \(Q_t\) are symmetric by definition.
+Note that in the following mathematical derivation of the EKF, the covariance matrices \(R_t\) and \(Q_t\) are symmetric by definition.
+
+We can now begin by rewriting Line 2 of the Bayes Filter using our Gaussian pdf definitions:
+\begin{multline} \label{eqBelBarLt}
+\overline{bel}(x_t) = \int p(x_t \mathbin{\vert} x_{t-1}) bel(x_{t-1})dx_{t-1} \\
+= det(2 \pi R_t)^{-\frac{1}{2}} det(2 \pi \Sigma_{t-1})^{-\frac{1}{2}} \int [ exp\{-\frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T \\ * R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\} * exp \{-\frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \}dx_{t-1} ] \\
+= \eta \int exp\{-L_t\}dx_{t-1} \hfill
+\end{multline}
+where we've defined
+\begin{multline}
+L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\\
++ \frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \hfill
+\end{multline}
+
+% Why do we want this decomposition?
+We want a decomposition \(L_t = L_t(x_{t-1},x_t) + L_t(x_t)\) such that all terms containing \(x_{t-1}\) are collected in \(L_t(x_{t-1},x_t)\). This will allow us to move \(L_t(x_t)\) outside of \(\overline{bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\).
+
+Notice that \(L_t : \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}\) is quadratic with respect to \(x_{t-1}\). From Taylor's Theorem we know that the critical point \(x_{t-1}^*\) at the minimum of \(L_t\) with respect to \(x_{t-1}\) satisfies: \[
+L_t = \underline{L_t(x_{t-1}^*)} + \frac{1}{2} (x_{t-1} - x_{t-1}^*) (\frac{\partial^2 L_t}{\partial x_{t-1}^2})^{-1} (x_{t-1} - x_{t-1}^*)
+\] 
+where the underlined term is \(L_t\) evaluated at \(x_{t-1}^*\). Thus we may decompose \(L_t\) into another quadratic expression w.r.t \(x_{t-1}\), and a constant term w.r.t \(x_{t-1}\). We will now proceed to calculate \(x_{t-1}^*\), by setting \(\frac{\partial L_t}{\partial x_{t-1}}\) to 0.
 
 Define 
 \begin{multline*}
@@ -261,42 +278,43 @@ then
 = G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1} \equiv \Phi_t^{-1} \hfill \text{(by Lemma \ref{lemma2})}
 \end{multline}
 
+% Why is this true?
 The second derivative - which we've defined to be \(\Phi_t^{-1}\) - is the inverse of the covariance matrix.
 
-Now we can set the first derivative to 0, and compute the mean.
-
+Now we can compute the minimum \(x_{t-1}^*\).
 \begin{multline}
 \frac{\partial L_t}{\partial x_{t-1}} = 0 \\
-\implies (x_{t-1} - \mu_{t-1})^T \Sigma_{t-1}^{-1} = (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} G_t \\
-\implies \Sigma_{t-1}^{-1} (x_{t-1} - \mu_{t-1}) = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) \\
-\implies \Sigma_{t-1}^{-1} x_{t-1} + G_t^T R_t^{-1}G_t x_{t-1} = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1}) + G_t \mu_{t-1}) + \Sigma_{t-1}^{-1} \mu_{t-1} \\
-\implies \Phi_t^{-1} x_{t-1} = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1} \\
-\implies x_{t-1} = \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
+\implies (x_{t-1}^* - \mu_{t-1})^T \Sigma_{t-1}^{-1} = (x_t - g(\mu_{t-1}) - G_t (x_{t-1}^* - \mu_{t-1}))^T R_t^{-1} G_t \\
+\implies \Sigma_{t-1}^{-1} (x_{t-1}^* - \mu_{t-1}) = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1}) - G_t (x_{t-1}^* - \mu_{t-1})) \\
+\implies \Sigma_{t-1}^{-1} x_{t-1}^* + G_t^T R_t^{-1}G_t x_{t-1}^* = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1}) + G_t \mu_{t-1}) + \Sigma_{t-1}^{-1} \mu_{t-1} \\
+\implies \Phi_t^{-1} x_{t-1}^* = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1} \\
+\implies x_{t-1}^* = \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
-Thus we can construct
+Thus we can construct the quadratic term of our decomposition:
 \begin{multline}
-L_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])^T \\
-* \Phi_t^{-1} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])
+L_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*)^T \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*) \\
+= \frac{1}{2} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])^T \\
+* \Phi_t^{-1} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]) \hfill
 \end{multline}
-
-\begin{remark} \label{remark1}
-
-\[
+Notice that \(L_t(x_{t-1},x_t)\) is the negative of the exponent in a normal distribution. Because all PDFs integrate to 1, we have:
+\begin{equation} \label{eqLtInt1}
 \int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\{-L_t(x_{t-1},x_t)\}dx_{t-1} = 1
-\]
-\end{remark}
+\end{equation}
 
+Now we can further simplify \(\overline{bel}(x_t)\):
 \begin{multline}
 \overline{bel}(x_t) = \eta_1 \int exp\{-L_t\}dx_{t-1} \hfill \text{(by Eq. \ref{eqBelBarLt})} \\
 = \eta_1 \int exp\{-L_t(x_{t-1},x_t) - L_t(x_t)\}dx_{t-1} \\
 = \eta_1 \int exp\{-L_t(x_{t-1},x_t)\} exp \{ - L_t(x_t)\}dx_{t-1} \\
 = \eta_1\ exp \{ - L_t(x_t)\} \int exp\{-L_t(x_{t-1},x_t)\} dx_{t-1} \\
-= \eta_1\ exp \{ - L_t(x_t)\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Remark \ref{remark1})} \\
+= \eta_1\ exp \{ - L_t(x_t)\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Eq. \ref{eqLtInt1})} \\
 = \eta_2\ exp \{ - L_t(x_t)\} \hfill
 \end{multline}
 
-% Is this true? or is it exactly equal?
-Therefore the mean and covariance of the gaussian distribution \(\overline{bel}(x_t)\) is proportional to the mean and covariance of \(L_t(x_t)\).
+Notice that the \(det(2 \pi \Phi_t)^{\frac{1}{2}}\) term was absorbed into the normalizing constant, since it is a constant with respect to \(x_t\).
+
+% Why is this true?
+We can now see that the mean and covariance of the gaussian distribution representing \(\overline{bel}(x_t)\) will be equal to the minimum and the inverse of the curvature of \(L_t(x_t)\).
 
 \begin{multline}
 L_t = L_t(x_{t-1},x_t) + L_t(x_t)  \implies L_t(x_t) = L_t -  L_t(x_{t-1},x_t) \\
@@ -307,7 +325,7 @@ L_t = L_t(x_{t-1},x_t) + L_t(x_t)  \implies L_t(x_t) = L_t -  L_t(x_{t-1},x_t) \
 - \frac{1}{2} [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]^T \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
 
-The quadratic and linear \(x_{t-1}\) terms cancel out. This is to be expected from our construction of \(L_t(x_{t-1}, x_t)\). \(L_t(x_t)\) is quadratic in \(x_t\), so once again we can find its mean and covariance from the first and second derivative, respectively.
+The quadratic and linear \(x_{t-1}\) terms cancel out. This is to be expected from our construction of \(L_t(x_{t-1}, x_t)\). \(L_t(x_t)\) is quadratic in \(x_t\), so once again we can find its minimum and covariance from the first and second derivative, respectively.
 
 
 \begin{multline}
@@ -315,49 +333,48 @@ The quadratic and linear \(x_{t-1}\) terms cancel out. This is to be expected fr
 + \frac{\partial [\frac{1}{2} (-g(\mu_{t-1})+G_t\mu_{t-1})R_t^{-1}x_t]}{\partial x_t} + \frac{\partial [-\frac{1}{2} x_t^TR_t^{-1}G_t\Phi_tG_t^TR_t^{-1}x_t]}{\partial x_t} \\
 + \frac{\partial [-\frac{1}{2} x_t^TR_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g_t + \Phi_t^{-1}\mu_{t-1})]}{\partial x_t} + \frac{\partial [-\frac{1}{2} (-G_t^TR_t^{-1}g_t + \Phi_t^{-1}\mu_{t-1})^T\Phi_tG_t^TR_t^{-1}x_t]}{\partial x_t} \\
 = R_t^{-1}x_t - (R_t^{-1}G_t\Phi_tG_t^TR_t^{-1})^Tx_t  \hfill \text{(by Lemma \ref{lemma1})} \\
-+ R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1}) \\
-- R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) \hfill \\
++ R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1}) \hfill \text{(by Lemma \ref{lemma2})} \\
+-R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1} + \Phi_t^{-1}\mu_{t-1}) \hfill \text{(by Lemma \ref{lemma2})} \\
 = (R_t^{-1} - R_t^{-1}G_t\Phi_tG_t^TR_t^{-1})x_t \\
 + R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1}) - R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) \\
 = (R_t + G_t\Sigma_{t-1}G_t^T)^{-1}x_t \hfill \text{(by Lemma \ref{lemmaInversion})} \\
 + R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1}) - R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) 
 \end{multline}
 
+Now to compute the mean of \(L_t(x_t)\), which is also the mean of \(\overline{bel}(x_t)\), \(\overline{\mu_t}\)
 \begin{multline}
 \frac{\partial L_t(x_t)}{\partial x_t} = 0 \\
-\implies x_t = (R_t + G_t\Sigma_{t-1}G_t^T) [R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) \\ - R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1})] \\
+\implies \overline{\mu_t} = (R_t + G_t\Sigma_{t-1}G_t^T) [R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) \\ - R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1})] \\
 = (R_t + G_t\Sigma_{t-1}G_t^T) [-R_t^{-1}G_t\Phi_tG_t^TR_t^{-1}g(\mu_{t-1}) + R_t^{-1}G_t\mu_{t-1} \\ + R_t^{-1}g(\mu_{t-1}) - R_t^{-1}G_t\mu_{t-1}] \\
 = (R_t + G_t\Sigma_{t-1}G_t^T) [(R_t^{-1} - R_t^{-1}G_t(G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1})G_t^TR_t^{-1})g(\mu_{t-1}) \\
 + R_t^{-1}G_t\mu_{t-1} - R_t^{-1}G_t\mu_{t-1}] \\
 = (R_t + G_t\Sigma_{t-1}G_t^T)[(R_t + G_t\Sigma_{t-1}G_t^T)^{-1} g(\mu_{t-1})] \\
-= g(\mu_{t-1})
+= g(\mu_{t-1}) \hfill
 \end{multline}
 
+% Why?
+And the inverse of the second derivative of \(L_t(x_t)\) is the covariance matrix for \(\overline{bel}(x_t)\), \(\overline{\Sigma_t}\)
 \begin{multline}
 \frac{\partial^2 L_t(x_t) }{\partial x_t^2} = \frac{(R_t + G_t\Sigma_{t-1}G_t^T)^{-1}x_t}{\partial x_t^2} \\
-= [(R_t^{-1} + G_t\Sigma_{t-1}G_t^T)^{-1}]^T = (R_t^{-1} + G_t\Sigma_{t-1}G_t^T)^{-1}
+= [(R_t + G_t\Sigma_{t-1}G_t^T)^{-1}]^T = (R_t + G_t\Sigma_{t-1}G_t^T)^{-1} \\
+\implies \overline{\Sigma_t} = R_t^{-1} + G_t\Sigma_{t-1}G_t^T
 \end{multline}
 
-The inverse of the second derivative is the covariance.
+Therefore 
+\(\overline{bel}(x_t) \sim N(x_t;g(\mu_{t-1}),(R_t + G_t\Sigma_tG_t^T))\)
 
-\(N(x_t;g(\mu_{t-1}),(R_t + G_t\Sigma_tG_t^T))\)
-
-Line 2 of the Bayes Filter, 
-\[
-\overline{bel}(x_t) = \int p(x_t \mathbin{\vert} x_{t-1}) bel(x_{t-1})dx_{t-1}
-\]
-becomes 
+Thus Line 2 of the Bayes Filter, which propagated the belief forward in time based on the state transition pdf, can be translated into the following two computations:
 \[
 \overline{\mu_t} = g(\mu_{t-1}) \\
 \overline{\Sigma_t} = (R_t + G_t\Sigma_{t-1}G_t^T)
 \]
 
-The next line of the filter is 
+The next line of Bayes filter is the update step, which morphs the belief distribution based on the belief distribution around the recent sensor measurement, the measurement pdf:
 \[
 bel(x_t) = \eta p(z_t \mathbin{\vert} x_t) \overline{bel}(x_t)
 \]
 
-As before, let the underlying model of the measurement pdf (\(p(z_t \mathbin{\vert} x_t)\)) be given by \[z_t =  h(x_t) + \delta_t\] where \(h(x)\) is an arbitrary function, and \(\delta_t\) is a random gaussian vector with mean 0 and covariance \(Q_t\).
+As before, let the underlying model of the measurement pdf be given by \[z_t =  h(x_t) + \delta_t\] where \(h: \mathbb{R}^n \to \mathbb{R}^k\) is an arbitrary function, and \(\delta_t\) is a Gaussian random vector with mean 0 and covariance matrix \(Q_t\).
 
 Then we will once again use a first-order Taylor series expansion to approximate \(h\), only now we will expand around our new best estimate of the robot's state: \(\overline{\mu_t}\):
 \begin{multline}
@@ -371,9 +388,9 @@ H_t = \begin{bmatrix}
 \frac{\partial h_k(\overline{\mu_t})}{\partial x_{1_{t-1}}} & \dots & \frac{\partial h_k(\overline{\mu_t})}{\partial x_{n_{t-1}}} 
 \end{bmatrix} \] is the Jacobian of \(h\) evaluated at \(\overline{\mu_t}\).
 
-Then in the same manner as we did with the state transition pdf, we can calculate the mean of the measurement pdf to be \(h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t})\), with covariance \(Q_t\).
+Then in the same manner as we did with the state transition pdf, we can calculate the mean of the measurement pdf to be \(h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t})\), with covariance \(Q\).
 
-\(p(z_t \mathbin{\vert} x_t) \sim N(z_t;h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}),Q_t)\)
+\(p(z_t \mathbin{\vert} x_t) \sim N(z_t;h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}),Q)\)
 
 and 
 \begin{multline}
@@ -398,7 +415,7 @@ J_t = \frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T Q
 \end{multline}
 
 \begin{multline}
-\frac{\partial^2 J_t}{\partial x_t^2} = H_t^T Q_t^{-1} H_t + \overline{\Sigma_t}^{-1}
+\frac{\partial^2 J_t}{\partial x_t^2} = H_t^T Q_t^{-1} H_t + \overline{\Sigma_t}^{-1} \hfill
 \end{multline}
 
 The second derivative of the quadratic gives the curvature, which is the inverse of the covariance matrix of \(bel(x_t)\).
@@ -408,9 +425,9 @@ The second derivative of the quadratic gives the curvature, which is the inverse
 
 \begin{multline}
 \frac{\partial J_t}{\partial x_t} = 0 \\
-\implies (H_t^T Q_t^{-1} H_t + \overline{\Sigma_t}^{-1}) (x_t - \overline{\mu_t}) = H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \\
-\implies \Sigma_t^{-1} (x_t - \overline{\mu_t}) = H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \\
-\implies x_t = \overline{\mu_t} + \Sigma_t H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \hfill
+\implies (H_t^T Q_t^{-1} H_t + \overline{\Sigma_t}^{-1}) (\mu_t - \overline{\mu_t}) = H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \\
+\implies \Sigma_t^{-1} (\mu_t - \overline{\mu_t}) = H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \\
+\implies \mu_t = \overline{\mu_t} + \Sigma_t H_t^TQ_t^{-1}(z_t - h(\overline{\mu_t})) \hfill
 \end{multline}
 
 \begin{algorithm} 
@@ -427,9 +444,8 @@ The second derivative of the quadratic gives the curvature, which is the inverse
 	\end{algorithmic}
 \end{algorithm}
 
-
 %% NEED TO JUSTIFY THIS, CALCULATE O() COMPLEXITY
-We could stop here and call it a day. However, the computational complexity of inverting a \(d\) by \(d\)) matrix using the Strassen algorithm is approximately O(\(d^{2.8}\)) \cite{}. Line 4 of the current algorithm inverts the \(n\) by \(n\) matrix \(\overline{Sigma_t}^{-1}\), where \(n\) is the dimension of the state vector \(x_t\). So the computation of \(\Sigma_t\) given here is O(\(n^{2.8}\)). It turns out that we can rewrite Line 4 and avoid inverting the state covariance matrix as so:
+We could stop here and call it a day. However, the computational complexity of inverting a \(d\) by \(d\)) matrix using the Strassen algorithm is approximately O(\(d^{2.8}\)) \cite{}. Line 4 of the current algorithm inverts the \(n\) by \(n\) matrix \(\overline{Sigma_t}\), where \(n\) is the dimension of the state vector \(x_t\). So the computation of \(\Sigma_t\) given here is O(\(n^{2.8}\)). It turns out that we can rewrite Line 4 and avoid inverting the state covariance matrix as so:
 \begin{multline}
 \Sigma_t = (H_t^T Q_t^{-1} H_t + \overline{\Sigma_t}^{-1})^{-1} \\
 = \overline{\Sigma_t} - \overline{\Sigma_t} H_t^T (Q_t + H_t \overline{\Sigma_t} H_t^T)^{-1} H_t \overline{\Sigma_t} \hfill \text{(by Lemma \ref{lemmaInversion})} \\
@@ -442,7 +458,7 @@ where we make the useful definition
 K_t = \overline{\Sigma_t} H_t^T (Q_t + H_t \overline{\Sigma_t} H_t^T)^{-1}
 \]
 
-This shifts the O(\(n^{2.8}\)) computation of \(\Sigma_t\) to a O(\(k^{2.8}\)) computation of \(K_t\), where \(k\) is the dimension of the measurement vector \(z_t\). Note that in order to keep this new computation of \(\Sigma_t\) at O(\(n^2\)), one must compute in the correct order:
+This shifts the O(\(n^{2.8}\)) computation of \(\Sigma_t\) to a O(\(k^{2.8}\)) computation of \(K_t\), where \(k\) is the dimension of the measurement vector \(z_t\). Note that in order to keep this new computation of \(\Sigma_t\) at O(\(n^2\)), one must multiply matrices in the proper order:
 \[\Sigma_t = \overline{\Sigma_t} - K_t (H_t \overline{\Sigma_t})
 \]
 
@@ -459,8 +475,7 @@ K_t = \overline{\Sigma_t} H_t^T (Q_t + H_t \overline{\Sigma_t} H_t^T)^{-1} = (\S
 = \Sigma_t H_t^T Q_t^{-1} \hfill
 \end{multline}
 
-which means the computation of \(\mu_t\) (Line 5 of Algorithm \ref{alg:EKFnonOptimal}) may be rewritten to use \(K_t\).
-
+which means the computation of \(\mu_t\) may also be rewritten to use \(K_t\).
 \begin{algorithm} 
 	\caption{Extended Kalman Filter}
 	\label{alg:EKFOptimal}
@@ -477,9 +492,12 @@ which means the computation of \(\mu_t\) (Line 5 of Algorithm \ref{alg:EKFnonOpt
 \end{algorithm}
 
 \section{Remarks}
-In total the EKF algorithm has a computational complexity of \(max\)(O(\(n^{2.8}\), O(\(k^{2.8}\)),O(\(g\)),O(\(h\))) per iteration.
+In total the EKF algorithm has a computational complexity of \(max\)(O(\(n^{2.8}\)), O(\(k^{2.8}\)),O(\(g\)),O(\(h\))) per iteration, where the complexity of executing the functions \(g\) and \(h\) is unknown, but in practice are often O(\(1\)).
 
+It is important to note that several assumptions made in the derivation are unlikely to be accurate in reality. independent white noise
 markov assumption, unimodal assumption, gaussian assumption, white noise assumption
+
+it's also only an approximation via linearization of the true belief distribution. If either the underlying state transition model \(g\), or the sensor projection \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF gives appreciable results in real-time.
 
 coming up with appropriate \(R_t\) and \(Q_t\) covariance matrices
 
