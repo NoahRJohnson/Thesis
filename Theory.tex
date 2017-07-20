@@ -557,17 +557,17 @@ which means the computation of \(\mu_t\) may also be rewritten using \(K_t\). Th
 \subsection{Remarks}
 In total the EKF algorithm has a computational complexity of \(max\)(O(\(n^{2.8}\)), O(\(k^{2.8}\)), O(\(g\)), O(\(h\))) per iteration, where the complexity of executing the functions \(g\) and \(h\) is unknown, but in practice are often O(\(1\)).
 
-It is important to note that several assumptions made in the derivation are unlikely to be completely true in reality.
+%It is important to note that several assumptions made in the derivation are unlikely to be completely true in reality.
 
-normal distribution, unimodal, a single best guess with some uncertainty associated with it. incapable of handling multiple hypotheses at once
+%normal distribution, unimodal, a single best guess with some uncertainty associated with it. incapable of handling multiple hypotheses at once
 
-only gives an approximation to the true state transition and measurement models, via linearization. How good this approximation is depends on 
-\cite{probabilisticRobotics}
- independent white noise
-markov assumption, unimodal assumption, gaussian assumption, white noise assumption
+%only gives an approximation to the true state transition and measurement models, via linearization. How good this approximation is depends on 
+%\cite{probabilisticRobotics}
+%independent white noise
+%markov assumption, unimodal assumption, gaussian assumption, white noise assumption
 
-it's also only an approximation via linearization of the true belief distribution. If either the underlying state transition model \(g\), or the sensor projection \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF gives appreciable results in real-time.
+%it's also only an approximation via linearization of the true belief distribution. If either the underlying state transition model \(g\), or the sensor projection \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF gives appreciable results in real-time.
 
-coming up with appropriate \(R_t\) and \(Q_t\) covariance matrices
+%coming up with appropriate \(R_t\) and \(Q_t\) covariance matrices
 
-when does it diverge, when does it converge (unmodeled dynamics) \cite{}
+%when does it diverge, when does it converge (unmodeled dynamics) \cite{}
