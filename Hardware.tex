@@ -1,50 +1,54 @@
 \chapter{Hardware}
 
+Now that we have covered the necessary mathematical background of the main algorithm used in this thesis, we will move on to an overview of the rover's design. 
 %TODO: Mention initial parts list was inspired by http://www.instructables.com/id/Autonomous-Lynxmotion-Rover/
 \section{Specific Hardware Used} \label{sectionSpecificHardware}
-The specific hardware used in this project was chosen to minimize cost while still producing a vehicle capable of navigating rough, uneven outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500, with most of that cost coming from the rover's base.
+The hardware used in this project was chosen to minimize cost while producing a vehicle capable of navigating rough outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500, with most of that cost coming from the rover's base rather than its sensors.
 
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
-	\caption{Lynxmotion 4WD Rover \cite{fig_lynxmotion_rover}}
+	\caption{\cite{fig_lynxmotion_rover}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{lynxmotion-aluminum-a4wd1-rover-kit-w-encoders-7}
 	\label{FigLynxmotionRover}
 \end{wrapfigure}
 
-The mobile base chosen was the Lynxmotion A4WD1 Rover, shown in Figure \ref{FigLynxmotionRover}. It was purchased as a kit including four 200 RPM DC gear motors, 100 PPR motor encoders, and 4.75" diameter wheels. The chassis consists of four aluminum side brackets, and two polycarbonate panels on the top and bottom. This kit makes up the bulk of the cost of the project. It was chosen for its larger wheels with relatively strong motors, making it robust to uneven terrain and ramps, ideal for outdoor use. The rover can support up to 5 lbs overall, and a second level which stacks on top is available as an extension. This second level would be an ideal place to put a tablet or small laptop.
+The mobile base chosen was the Lynxmotion A4WD1 Rover, shown in Figure \ref{FigLynxmotionRover}. It was purchased as a kit including four 200 RPM DC gear motors, four 100 PPR motor encoders, and four 4.75" diameter wheels. The chassis consists of four aluminum side brackets, and polycarbonate top and bottom panels. This kit made up the bulk of the rover's cost. It was chosen for its large wheels and strong motors, increasing the rover's robustness to uneven terrain and ramps. The chassis can support up to 5 lbs overall, and a second stackable level is available as an extension. While not purchased, this second level would be an ideal place to put a tablet or small laptop.
 
-One downside of this robot base is the fixed position of the four wheels. The lack of a turnable axis means the rover must steer by varying the speed of its motors. This causes wheel slippage in one or more of the wheels when the rover turns, meaning the motor encoders won't see the distance traveled. This ultimately causes errors in the robot's localization. Choosing a different base which uses only two driven wheels would avoid this issue, and likely be even cheaper. However, such a choice must be balanced with the robot's suitability for outdoor use, and room for all on-board components.
+One downside of this base is the fixed position of the four wheels. The lack of a turnable axis means the rover must steer by varying the speed of its motors. This causes wheel slippage in one or more of the wheels when the rover turns, meaning the motor encoders don't see the distance traveled. This ultimately causes greater error buildup in the robot's localization. Choosing a different base which only uses two wheels would avoid this issue, and likely be cheaper. However, such a choice must be balanced with the robot's suitability for outdoor use, and room for all on-board components.
 
-The motors are controlled by a Sabertooth dual-channel 12A 6V-24V regenerative motor driver. The lithium ion battery over-discharge protection.
-protects from back EMF causing a current flow
+The motors are controlled by a Sabertooth 12A 6V-24V regenerative motor driver. There is a 5A version of this motor driver, which should have been purchased to save \$20. This driver is dual-channeled, i.e. it controls two separate motor channels. Two DC motors are attached to each channel, so that the left and right side wheels of the rover are each controlled by a single channel. The Sabertooth drives DC motors from these channels in a relatively simple way. The speed of DC motors is proportional to the voltage supplied to them, and the direction of rotation can be flipped simply by flipping the polarity of the supplied voltage. So the motor driver manages speed by modifying the voltage supplied to each channel. To do so it uses a technique called pulse-width modulation, which involves switching the power on and off at a high frequency. This approximates a smooth waveform of the average voltage and current. To change the direction of rotation, an on-board circuit called the H-bridge is used to flip the polarity of voltage supplied. \cite{dcMotorBlog}
 
-There is a 5A version of this motor driver, which should have been purchased to save \$20.
+%the motor driver protects from back EMF causing a current flow
 
-This motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in an 18650 battery case. This case is made out of a battery holder soldered in series to act as a pack. The battery cells were individually charged before each use by a NiteCore-i2-V2014 li-ion charger.
+The motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in a battery case. This case was made out of an 18650 battery holder soldered in series to act as a pack. The battery cells were individually charged before each use by a NiteCore-i2-V2014 li-ion charger. The Sabertooth motor driver has built-in lithium ion over-discharge protection, which ensures that the cells won't be discharged beyond their maximum capacity.
 
 \begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
-	\caption{PING))) Ultrasonic Sensor \cite{fig_ping}}
+	\caption{\cite{fig_ping}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{parallax-ping-ultrasonic-sensor}
 	\label{FigPing}
 \end{wrapfigure}
 
-On top of the rover is the PING))) ultrasonic distance sensor (see Figure \ref{FigPing}), which is attached to a standard Parallax servo which pans back and forth 180 degrees. This range sensor emits an ultrasonic chirp, and times how long it takes for that chirp to echo back. Based on that time, the distance from the sensor to an obstacle can be calculated. The PING))) sensor can be used to detect objects from 2cm to 3 meters away. \cite{pingDocumentation}
+Situated on top of the rover is the PING))) ultrasonic distance sensor (see Figure \ref{FigPing}), which is attached to a Parallax servo which pans back and forth 180 degrees. This range sensor emits an ultrasonic chirp, and times how long it takes for that chirp to echo back. Based on that time, the distance from the sensor to an obstacle can be calculated. The PING))) sensor can be used to detect objects from 2cm to 3 meters away. \cite{pingDocumentation}
 
 \begin{wrapfigure}{l}{0.25\textwidth}
-	\caption{Arduino Uno R3 \cite{fig_arduino_uno}}
+	\caption{\cite{fig_arduino_uno}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{arduinoUno}
 	\label{FigArduino}
 \end{wrapfigure}
 
-At the center of the rover is an Arduino Uno R3, see Figure \ref{FigArduino}. This microcontroller board handles several important tasks. It tells the motor driver what speed to set its two output channels to, and directly controls the panning motion of the standard Parallax servo. It also acts as a go-between for the digital output of the sensors on the rover and a laptop. It's connected to this laptop via a USB cable, which powers the board and allows communication over a serial port. Motor encoder values and ultrasonic range data are transmitted to the laptop, and motor power commands are received. An Arduino prototyping shield is stacked on top to allow re-usability of the board.
+At the heart of the rover is an Arduino Uno R3, shown in Figure \ref{FigArduino}. This microcontroller board handles low level control of the rover. It tells the motor driver what speed to set its two output channels to, and directly controls the panning motion of the Parallax servo. It also transmits sensor measurements to the computer. It's connected to this computer via a USB cable, which powers the board and allows communication over a serial port. Motor encoder values and ultrasonic range data are transmitted, and motor speed commands are received. An Arduino prototyping shield was stacked on top for soldering connections, to allow re-usability of the board.
 
-Only two encoders end up being used, due to a limit of the microcontroller board used. Choosing a different model with more hardware interrupt pins would improve accuracy, without drastically increasing the price.
+Only two of the four available motor encoders are used, due to a limit of the microcontroller board used. Choosing a different model with more hardware interrupt pins would improve localization accuracy, without drastically increasing the price.
 
-The specific laptop used in this project is the Dell Inspiron 3531, which has a quad core 2.16 GHz processor, and 4 GB of RAM. Any personal laptop running Ubuntu or Debian could be used here, and additional computational resources would be beneficial. However, this laptop was a personal work machine and already available to use at no additional cost. The laptop is used as the main processing unit for the navigation logic.
+The computer used is a Dell Inspiron 3531 laptop, which has a quad-core 2.16 GHz processor, and 4 GB of RAM. Any personal laptop running Ubuntu or Debian could be used here, and additional computational resources would be beneficial. However, this laptop was a personal work machine and already available to use at no additional cost. The laptop is used as the main processing unit.
 
-The last component is a Nexus 4 smartphone placed on the top panel of the rover, which is also connected to the laptop by USB. Inside this phone is an MPU-6050 chip which contains a gyroscope and accelerometer. Elsewhere on the phone's logic board are a magnetometer, otherwise known as a digital compass, and a GPS receiver. This was also a personal device already available, and acts as a cheap Inertial Measurement Unit (IMU) and GPS receiver for the robot.
+The last component in the design is a Nexus 4 smartphone placed on top of the rover, behind the ultrasonic sensor. Just like the Arduino board, it is connected to the laptop by USB. Inside this phone is an MPU-6050 chip which contains a digital gyroscope and accelerometer. Elsewhere on the phone's logic board is a magnetometer, otherwise known as a digital compass, and a GPS receiver. This was also a personal device already available, which acts as a cheap Inertial Measurement Unit (IMU) and GPS receiver for the robot.
+
+Both USB cables used are just under 10 feet long. The USB 2.0 specification limits the length of cable between two 2.0 USB devices to less than five meters, or about 16 feet \cite{usbForum}. Thus there should be no connectivity problems given the current length, but the cables cannot be extended much further. 
+
+Connecting electronics on the rover to the laptop via USB means the processing laptop must be manually kept within 10 feet of the rover as it navigates. Thus the rover is not truly autonomous. It could be made so by including wireless or radio communication with a server, or by using a larger chassis which would be able to simply carry the laptop. However, USB cables are cheap, and the current design still functions as a proof of concept for an autonomous rover.
 
 \section{Construction}
 
@@ -77,13 +81,9 @@ The servo fits conveniently into a pre-cut opening in the top chassis panel, and
 
 Another opening in the top panel allows the PING))) sensor to connect to the Arduino inside the body of the rover. This opening also allows the type A/B USB cable connected to the Arduino to extend out and reach the laptop. The smartphone sits on the top panel just to the left of this opening, secured in place by removable glue adhesive dots. It is also connected to the laptop via a micro-USB to USB cable.
 
-Both USB cables are long, stretching to just under 10 feet. The USB 2.0 specification limits the length of cable between two 2.0 USB devices to less than five meters, or about 16 feet \cite{usbForum}. Thus there should be no problem with the current length, but extensions in the future could not go much further. 
-
-Connecting electronics on the rover to the laptop via USB means the processing laptop must manually be kept within 10 feet of the rover as it navigates. This design could easily be extended to include wireless or radio communication with a server, and a larger chassis would simply be able to carry the laptop on it. However, USB cables are cheap and still function as a proof of concept for an autonomous design.
-
 \begin{figure}[p] 
-	\caption{Connections Made}
-	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio, angle=0]{RoverDesign}
+	\caption{Electrical Connections}
+	\includegraphics[width=\textwidth,height=\textheight,keepaspectratio, angle=90]{RoverDesign}
 	\centering
 	\label{figRoverDesign}
 	\text{This image was created with Fritzing}
@@ -92,9 +92,6 @@ Connecting electronics on the rover to the laptop via USB means the processing l
 Figure \ref{figRoverDesign} is a schematic specifying the overall design for the rover.
 
 Connections were made with flexible stranded core, 22 AWG breadboard wires. Connections to the Arduino's digital pins were made indirectly. A prototyping shield was stacked on top of the Arduino, and connected to its digital pins via pin headers. Signal pins were then soldered to the prototyping shield. Breadboard wires needing direct connection ideally should use terminal block connectors. However, these were difficult to find at a reasonable price, and so wires were soldered together tip to tip, and then wrapped in electrical tape.
-
-The Sabertooth motor driver controls two motor channels. It drives DC motors from these channels in a relatively simple way. The speed of DC motors is proportional to the voltage supplied to them, and the direction of rotation can be flipped simply by flipping the polarity of the supplied voltage. The motor driver manages the voltage supplied to each channel by using pulse-width modulation, which involves switching the power on and off at a high frequency. This approximates a smooth waveform of the average voltage and current. An on-board H-bridge is used to flip the polarity. \cite{dcMotorBlog}
-
 
 \subsection{Power}
 Besides the Arduino Uno, which is powered separately by a USB connection to the laptop, most of the rover's components are powered by the battery pack. This pack contains two individual 18650 lithium-ion cells placed into a battery holder and connected in series. The battery pack is then connected to the motor driver's battery terminals B+ and B-. The positive B+ output goes through a microswitch, which is attached to a side bracket in the rover, and is accessible from the outside. This acts as a kill switch for the battery pack.
