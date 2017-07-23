@@ -1,9 +1,11 @@
 \chapter*{Conclusion}
 
+We have shown that the proposed vehicle design is capable of using wheel encoders and a smartphone to localize itself with respect to UTM coordinates.
+
 %Project Limitations
 The rover's design has several flaws.
 
-The differential drive model is a rough and messy approximation to the skid steering base, causing large errors in the yaw state variable to accumulate quickly in the wheel odometry.
+The differential drive model is a simple approximation to the skid steering rover, causing large errors in the yaw state variable to accumulate quickly in the wheel odometry.
 
 The covariance matrices should be further refined, especially the wheel odometry and magnetometer variances, which were guessed at.
 
