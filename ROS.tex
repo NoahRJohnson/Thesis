@@ -151,30 +151,21 @@ For testing of the rover's localization capabilities, it was necessary to manual
 In order to access the smartphone's IMU and GPS data, an Android app was written to act as a ROS node. All sensor messages published are from the phone's frame, which is centered 2 inches to the right of the base\_link frame, and always has the ENU orientation. The app makes use of phone tethering supported by the Android OS, which allows one to access the internet over a smartphone's data plan. However, this feature is used only as a convenient way for the phone and laptop to communicate locally over USB.
 
 \subsection{GPS}
-\begin{wrapfigure}{R}{0.5\textwidth} 
-	\caption{Trilateration \ref{fig:trilateration}}
+\begin{wrapfigure}{L}{0.5\textwidth} 
+	\caption{Trilateration \cite{GPS_trilateration}}
 	\centering
-	\includegraphics[width=0.25\textwidth]{rpy}
+	\includegraphics[width=0.25\textwidth]{trilateration}
 \end{wrapfigure}
 
-The Global Positioning System (GPS) was developed by the U.S. Department of Defense, and has been operational since 1995. It currently involves 31 satellites orbiting the earth in such a way that four or more satellites are always visible from most land masses. Each satellite broadcasts a signal, containing the exact time the signal was sent, as well as positional information about the orbit the satellite is on. When a GPS receiver reads the signal, it looks at its current time and calculates the length of time the signal took to reach the receiver. It can then multiply this length by the speed of light to calculate the distance between the receiver and satellite. This distance means the receiver is somewhere on a sphere of radius that distance from the satellite. Because four spheres can only intersect at one point, if the receiver knows its distance from four satellites, then it can calculate the intersection point - its location with respect to those satellites. This process is known as trilateration. \cite{GPS_trilateration}
+The Global Positioning System (GPS) was developed by the U.S. Department of Defense, and has been operational since 1995. It currently involves 31 satellites orbiting the earth in such a way that four or more satellites are always visible from most land masses. Each satellite broadcasts a signal via radio wave, which contains the exact time the signal was sent, as well as orbital information about the exact position of the satellite at that time. When a GPS receiver reads one of these signals, it looks at the current time and calculates the length of time the signal took to reach the receiver. It can then multiply this length by the speed of light to calculate the distance between the receiver and satellite. This distance can be thought of as the radius of a sphere centered at the satellite. The receiver must be somewhere on that sphere. Because four spheres can only intersect at one point, if the receiver knows its distance from four satellites, then it can calculate the intersection point - its location with respect to the earth. This process is known as trilateration. \cite{GPS_trilateration}
 
-The coastguard broadcasts fix message for gps, however the smartphone used in this project does not have the required hardware to access that.
+The GPS coordinates reported by the phone node are acquired using assisted GPS (AGPS). In AGPS, cell phone towers use a phone's signal strength to help determine its position. This provides quicker and more precise location tracking. At greater cost, one could purchase GPS hardware to access gps fix messages broadcast by the coastguard for even greater precision.
 
-The GPS coordinates reported by the phone node are actually acquired using assisted GPS (AGPS). In AGPS, cell phone towers use a phone's signal strength to help determine its position, and they also transmit almanac and ephemeris info to phones using a data connection. The hardware also reports an uncertainty estimate.\cite{}
-
-The phone node publishes gps messages roughly every five seconds. The covariance matrix is only filled in along the diagonal, using the uncertainty estimate reported by the Android OS.
+The phone node publishes gps messages as they come in: roughly every five seconds. The covariance matrix is filled in along the diagonal, using the variances reported by the Android OS.
 
 \subsection{IMU}
 
-Inertial Measurement Units (IMUs) are small chips that measure linear and angular movement. A digital accelerometer measures linear acceleration in all three dimensions, while a digital gyroscope measures angular velocity around each axis. Lastly, a digital magnetometer measures magnetic strength along each axis.
-
-IMU chips often report in NED frame, however the Android API works within the ENU frame, as expected.
-
-A covariance matrix was once again filled out on only the diagonals, with accelerometer and gyroscope variances hard-coded at the values at 0.04 \(\frac{m}{s^2}\) and 0.004 \(\frac{rad}{s}\). \cite{Nexus4Paper}
-Magnetometer variance was guessed at 0.01 \(\frac{deg}{s}\)
-
-All of this information is encapsulated in a ROS IMU message, which is published at approximately 5 Hz. 
+Inertial Measurement Units (IMUs) are small chips that measure linear and angular movement. A digital accelerometer measures linear acceleration in all three dimensions, while a digital gyroscope measures angular velocity around each axis. Lastly, a digital magnetometer measures magnetic strength along each axis. IMU chips often report their data in the NED (North-East-Down) orientation, however the Android API reports values using the ENU convention, as expected. A covariance matrix was once again filled out on only the diagonals, with squared variances hard-coded at reasonable estimates. All of this information is encapsulated in a ROS IMU message, which is published at approximately 5 Hz. 
 
 \section{robot\_localization} \label{sectionRobotLocalization}
 %http://docs.ros.org/kinetic/api/robot_localization/html/
@@ -186,9 +177,9 @@ All of this information is encapsulated in a ROS IMU message, which is published
 	\includegraphics[width=0.25\textwidth]{rpy}
 \end{wrapfigure}
 
-This package created by Tom Moore implements the extended Kalman Filter, the mathematical details of which were described in section \ref{sectionEKF}. The filter keeps track of a 15-dimensional vector describing the rover's state: \((x,y,z,\Phi,\theta,\Psi,x',y',z',\Phi ',\theta ',\Psi ', x'', y'', z'')\). In this state vector  \(\Phi\), \(\theta\), and \(\Psi\) represent roll, pitch, and yaw, respectively. These Euler angles describe rotation about the X, Y, and Z axes. See Figure \ref{fig:rpy}. \cite{robot_localization_paper}
+This package created by Tom Moore implements the extended Kalman Filter, which was derived in section \ref{sectionEKF}. The filter keeps track of a 15-dimensional vector describing the rover's state: \((x,y,z,\Phi,\theta,\Psi,x',y',z',\Phi ',\theta ',\Psi ', x'', y'', z'')\) \cite{robot_localization_paper}. In this state vector  \(\Phi\), \(\theta\), and \(\Psi\) represent roll, pitch, and yaw respectively. These Euler angles describe rotation about the X, Y, and Z axes. See Figure \ref{fig:rpy} for an illustration. 
 
-This project takes advantage of the fact that the rover is a ground vehicle and makes the assumption that all terrain is perfectly flat, and that the rover is moving in a two-dimensional environment. Thus z,roll, pitch, and their derivatives in the state vector are fixed at 0. This configuration should be changed for more elaborate testing, however this eliminates an entire axis of noise from GPS altitude and IMU measurements. 
+This project takes advantage of the fact that the rover is a ground vehicle and makes the assumption that all terrain is perfectly flat, and that the rover is moving in a two-dimensional environment. Thus z, roll, pitch, and their derivatives in the state vector are fixed at 0. This configuration should be changed for more elaborate testing, however this assumption eliminates an entire axis of noise from GPS altitude and IMU measurements. 
 
 \definecolor{Gray}{gray}{0.85}
 \newcolumntype{a}{>{\columncolor{Gray}}c}
@@ -208,12 +199,10 @@ This project takes advantage of the fact that the rover is a ground vehicle and 
 	\end{center}
 \end{table}
 
-Table \ref{tab:configs} shows which state variables each sensor affects, where a 1 indicates that that sensor gives a reading for the corresponding state variable, and a 0 indicates that it does not.
+Table \ref{tab:configs} shows which state variables each sensor affects, where a 1 indicates that the sensor gives a reading for the corresponding state variable, and a 0 indicates that it does not.
 
-The rover's system runs three nodes from this package.
+The rover's system runs three nodes from this package. The first node runs an EKF which fuses wheel odometry from the diff\_odom node (section \ref{sectionOdomPublishing}) with IMU data from the phone node. It produces a state estimate in the odom frame.
 
-The first node runs an EKF which fuses wheel odometry from the diff\_odom node (section \ref{sectionOdomPublishing}) with IMU data from the phone node. It produces a state estimate in the local odom frame.
+The second node provides a helper service that transforms gps coordinates into a locally fixed frame, and vice versa. Its main use is to transform gps messages coming from the phone node into coordinates in the map frame.
 
-The second node provides a helper service that transforms gps coordinates into the local frame, and vice versa. Its main use is to transform gps messages coming from the phone node into coordinates in the map frame.
-
-The third and final node fuses the odometry output from the first and second nodes together, producing a final  state estimate in the map frame. This estimate is discontinuous, as the output from the second node is positional coordinates, which this node uses to instantaneously adjust the rover's \(x\) and \(y\) state variables.
+The third and final node runs another EKF which fuses the odometry output from the first and second nodes together, producing a final  state estimate in the map frame. This estimate is discontinuous, as the output from the second node is positional coordinates, which this node uses to instantaneously adjust the rover's \(x\) and \(y\) state variables.
