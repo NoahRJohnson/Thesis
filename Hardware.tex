@@ -5,7 +5,7 @@ Now that we have covered the necessary mathematical background of the main algor
 \section{Specific Hardware Used} \label{sectionSpecificHardware}
 The hardware used in this project was chosen to minimize cost while producing a vehicle capable of navigating rough outdoors terrain. Parts that were already on hand, and that most college students would reasonably have access to, such as a personal laptop and an Android smartphone, were used over superior alternatives. In total these parts were purchased for less than \$500, with most of that cost coming from the rover's base rather than its sensors.
 
-\begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
+\begin{wrapfigure}{R}{0.25\textwidth} %this figure will be at the right
 	\caption{\cite{fig_lynxmotion_rover}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{lynxmotion-aluminum-a4wd1-rover-kit-w-encoders-7}
@@ -23,7 +23,7 @@ The motors are controlled by a Sabertooth 12A 6V-24V regenerative motor driver. 
 
 The motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, which sit in a battery case. This case was made out of an 18650 battery holder soldered in series to act as a pack. The battery cells were individually charged before each use by a NiteCore-i2-V2014 li-ion charger. The Sabertooth motor driver has built-in lithium ion over-discharge protection, which ensures that the cells won't be discharged beyond their maximum capacity.
 
-\begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
+\begin{wrapfigure}{L}{0.25\textwidth} %this figure will be at the right
 	\caption{\cite{fig_ping}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{parallax-ping-ultrasonic-sensor}
@@ -32,7 +32,7 @@ The motor driver is powered by two LG 18650 HE2 rechargable lithium ion cells, w
 
 Situated on top of the rover is the PING))) ultrasonic distance sensor (see Figure \ref{FigPing}), which is attached to a Parallax servo which pans back and forth 180 degrees. This range sensor emits an ultrasonic chirp, and times how long it takes for that chirp to echo back. Based on that time, the distance from the sensor to an obstacle can be calculated. The PING))) sensor can be used to detect objects from 2cm to 3 meters away. \cite{pingDocumentation}
 
-\begin{wrapfigure}{l}{0.25\textwidth}
+\begin{wrapfigure}{R}{0.25\textwidth}
 	\caption{\cite{fig_arduino_uno}}
 	\centering
 	\includegraphics[width=0.25\textwidth]{arduinoUno}
@@ -53,7 +53,7 @@ Connecting electronics on the rover to the laptop via USB means the processing l
 
 \section{Construction}
 
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{L}{0.5\textwidth}
 	\caption{Constructed Chassis}
 	\centering
 	\includegraphics[width=0.5\textwidth]{chassis-constructed}
@@ -62,7 +62,7 @@ Connecting electronics on the rover to the laptop via USB means the processing l
 
 Figure \ref{FigConstructedChassis} shows the base just after assembly. The aluminum side brackets' mounting holes did not line up properly with the motors, so a Dremel drill was used to widen them.
 
-\begin{wrapfigure}{l}{0.5\textwidth}
+\begin{wrapfigure}{R}{0.5\textwidth}
 	\caption{Pieces Mounted}
 	\centering
 	\includegraphics[width=0.5\textwidth]{chassis-parts-mounted}
@@ -71,7 +71,7 @@ Figure \ref{FigConstructedChassis} shows the base just after assembly. The alumi
 
 The Arduino Uno was screwed to a 2.5" x 3" x 0.5" wooden poplar block, with non-conductive nylon washers placed between the screw head and the Uno, and between the Uno and the wooden block. The wooden Arduino mounting board and the motor driver were both attached via double-sided foam mounting tape to the bottom panel of the rover. The battery holder was attached with glue dots for easier removal.
 
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{L}{0.5\textwidth}
 	\caption{Construction Finished}
 	\centering
 	\includegraphics[width=0.5\textwidth]{roverFinished}
