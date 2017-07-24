@@ -10,7 +10,7 @@ Processes in ROS are known as nodes. Nodes communicate by publishing and subscri
 
 When a node publishes a message to a particular topic, all nodes subscribed to that topic receive a copy. Any number of processes may publish or subscribe to a topic, making this a many-to-many communication protocol. Under the hood, messaging between nodes is handled by the ROS Master node, which acts like a DNS server and must be running for the ROS system to function. 
 
-Let's use a simple example to understand. Assume a fresh ROS system, with only two nodes: A and B. If node A wishes to subscribe to messages coming from topic "/foo", it will register its intent with the Master. Then, if node B starts publishing messages to topic "/foo", it will also register this with the Master. When node B does so, the Master node will notify all registered subscribers on the "/foo" topic. Node A will receive the TCP/IP socket address of Node B, and communicate directly to negotiate opening a socket. Then each time node B publishes a message to "/foo", it will iterate through its list of connected sockets nodes, and push message data through each one. Every time the list of registered subscribers or publishers for topic "/foo" is updated, the Master node notifies all nodes registered to that topic.
+We will use a simple example to illustrate. Assume a fresh ROS system, with only two nodes: A and B. If node A wishes to subscribe to messages coming from topic "/foo", it will register its intent with the Master. Then, if node B starts publishing messages to topic "/foo", it will also register this with the Master. When node B does so, the Master node will notify all registered subscribers on the "/foo" topic. Node A will receive the TCP/IP socket address of Node B, and communicate directly to negotiate opening a socket. Then each time node B publishes a message to "/foo", it will iterate through its list of connected sockets nodes, and push message data through each one. Every time the list of registered subscribers or publishers for topic "/foo" is updated, the Master node notifies all nodes registered to that topic.
 
 \subsection{Packages}
 Packages are collections of related ROS resources which all work together to perform some specific task. They often include source code for nodes, executable utilities, message definitions, and launch files. There are also meta-packages which collect various related packages.
@@ -76,7 +76,7 @@ Since the PING))) sensor requires a minimum delay of 30 ms between pings, the sk
 The Uno uses one start bit and one stop bit to surround each byte of information sent over serial. Thus it takes 10 bits to send one byte of information. Therefore the minimum baud rate required is:
 \[1155\ Bps * 10\ bits\ per\ byte = 11550\ bits\ per\ second\]
 
-We'll choose a standard baud rate of 28,800 to more than double that for some breathing room, and to account for the fact that the rosserial Arduino library occasionally transmits time-keeping and synchronization messages of its own.
+We choose a standard baud rate of 28,800 to more than double that for some breathing room, and to account for the fact that the rosserial Arduino library occasionally transmits time-keeping and synchronization messages of its own.
 
 \subsection{rosserial\_python}
 rosserial\_python is one host package of rosserial, which acts as a bridge between the Arduino and ROS network. It runs a node on the laptop which communicates with the Arduino using the rosserial protocol. It automatically handles setup, communication with the ROS Master, and subscription and publishing on behalf of the Arduino. When launched, the serial node must be configured to use the same baud rate as the Arduino: 28,800. It must also be configured to connect to whichever serial port name the Arduino uses. For simplicity, a symbolic link was created using Ubuntu's udev rules, to ensure that the port name will always be accessible as "/dev/arduino". %https://www.clearpathrobotics.com/2015/01/arduino-ros/
@@ -97,7 +97,7 @@ Odometry messages are a type of ROS message used for navigation. They represent 
 	\label{figDiffDrive}
 \end{figure}
 
-To understand how the diff\_odom node calculates its odometry estimate, let's take a look at the standard theory for differential wheeled robots. Figure \ref{figDiffDrive} shows a simple two-wheeled robot making a left turn of \(\theta\) radians around some point. We assume the robot is one rigid body, and that each wheel maintains a constant velocity along the turn. This assumption of zero acceleration is obviously violated in the real world, but robots with a small mass and relatively powerful motors are able to approximate it well. \cite{differentialSteeringPaper}
+To understand how the diff\_odom node calculates its odometry estimate, let us take a look at the standard theory for differential wheeled robots. Figure \ref{figDiffDrive} shows a simple two-wheeled robot making a left turn of \(\theta\) radians around some point. We assume the robot is one rigid body, and that each wheel maintains a constant velocity along the turn. This assumption of zero acceleration is obviously violated in the real world, but robots with a small mass and relatively powerful motors are able to approximate it well. \cite{differentialSteeringPaper}
 
 \(r\) is the turning radius for the left wheel, and \((r+b)\) is the turning radius for the right wheel, where \(b\) is the distance between wheels. Using the formula for arc length, we know the distance traveled by the right and left wheels. Define these to be \(s_L\) and \(s_R\). Then let point M be the midpoint of the axle between both wheels. This point will travel an arc length of \((r+(b/2)) \theta \). We can manipulate \(s_L\) and \(s_R\) to produce the following two equations.
 \begin{equation} \label{eqDiffSM}
@@ -118,7 +118,7 @@ Though the number of encoder ticks per meter may be calculated from the encoders
 \subsection{twist\_to\_motors}
 Many ROS navigation packages produce Twist messages to command robotic platforms. The Twist message includes a linear and angular velocity, which the rover is expected to match, as a subfunction of some path following algorithm. The differential\_drive package uses the twist\_to\_motors node to translate Twist messages into individual motor velocities for each motor channel. 
 
-Taking into account the differentially steered conditions, this node only considers the linear velocity along the rover's x axis, and the angular velocity around the rover's z-axis. Let's refer to these as \(x'\) and \(\theta '\), respectively. Let \(b\) once again be the distance between the rover's wheels. Let \(L'\) and \(R'\) be the velocity of the left and right wheels. From equation \ref{eqDiffSM}, we know that
+Taking into account the differentially steered conditions, this node only considers the linear velocity along the rover's x axis, and the angular velocity around the rover's z-axis. Let us refer to these as \(x'\) and \(\theta '\), respectively. Let \(b\) once again be the distance between the rover's wheels. Let \(L'\) and \(R'\) be the velocity of the left and right wheels. From equation \ref{eqDiffSM}, we know that
 \begin{equation*}
 x' = (L' + R') / 2
 \end{equation*}
@@ -136,7 +136,7 @@ R' = x' + (b * \theta ') / 2
 This node uses these equations to calculate the appropriate wheel velocities from the incoming Twist message, and publishes those velocities to the "lwheel\_vtarget" and "rwheel\_vtarget" topics. 
 
 \subsection{pid\_velocity}
-The pid\_velocity node creates a  proportional-integral-derivative (PID) controller which uses encoder feedback to translate motor velocities into actual motor R/C pulse commands. While the appropriate R/C servo command to reach a desired velocity could be estimated from the Sabertooth motor driver's datasheet, this would be the theoretical value and wouldn't take into account real-world sources of error such as uneven terrain, high traction, wind drag, etc. Therefore a control loop which utilizes real-time feedback is preferred.
+The pid\_velocity node creates a  proportional-integral-derivative (PID) controller which uses encoder feedback to translate motor velocities into actual motor R/C pulse commands. While the appropriate R/C servo command to reach a desired velocity could be estimated from the Sabertooth motor driver's datasheet, this would be the theoretical value and would not take into account real-world sources of error such as uneven terrain, high traction, wind drag, etc. Therefore a control loop which utilizes real-time feedback is preferred.
 
 Two of these nodes are run, one for each motor channel. One node subscribes to the topic "lwheel\_vtarget", and publishes commands to "/cmd/left", while the other node subscribes to "rwheel\_vtarget", and publishes to "/cmd/right". The Arduino node, through its bridge, is subscribed to these two topics and handles their messages appropriately.
 

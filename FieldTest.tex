@@ -19,6 +19,10 @@ Figure \ref{figRouteOdom} shows the estimated path when fusing only the wheel en
 
 Figure \ref{figRouteOdomImu} shows the path generated when fusing wheel odometry with IMU data. In this case the shape of the path is much closer to truth, though the initial northern trajectory is under-estimated.
 
+
+% were impacted negatively during the field test by external magnetic fields other than the earth's. The field test itself was carried out in a parking lot filled with cars, some of which were running. Large metal bodies with flowing current cause large magnetic fields. 
+
+
 Lastly, Figure \ref{figRouteOdomImuGps} shows the result of fusing both prior sensors with GPS fixes. This plot looks much like the raw gps plot in Figure \ref{figRouteGPS}, however upon close inspection one can see jagged jumps in position. These jumps are instantaneous and actually lead to a discontinuous position estimate, though the visualizing tool connects every point. They are caused by the filter instantaneously adjusting the position estimate based on incoming gps fixes. The filter gives some weight to the current estimate, so the new adjusted position lies in between the position reported by the gps fix and the current estimate. Due to the frequent gps fixes and slow velocity of the rover, the estimated path never varies too far from the raw gps path.
 
 \begin{table}[h]
