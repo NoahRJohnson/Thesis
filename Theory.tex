@@ -333,7 +333,7 @@ L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x
 By assumption, \(\overline{\bel}(x_t)\) is a normal distribution. We will define its mean and covariance to be \(\overline{\mu}\) and \(\overline{\Sigma}\) respectively. In order to compute these matrices, we would like to use Lemma \ref{lemmaHessianInverse}. However, to turn \(\overline{\bel}(x_t)\) into the proper form, we will have to get rid of the integral over \(x_{t-1}\). To do so, we will decompose \(L_t\) into two terms like so: \begin{equation} \label{eqLtDecomp}
 L_t = L_t(x_{t-1},x_t) + L_t(x_t)
 \end{equation}
-where all terms containing \(x_{t-1}\) are collected in \(L_t(x_{t-1},x_t)\). This will allow us to move \(L_t(x_t)\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int L_t(x_{t-1},x_t)dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
+where all terms containing \(x_{t-1}\) are collected in \(L_t(x_{t-1},x_t)\). This will allow us to move \(L_t(x_t)\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int exp\{ -L_t(x_{t-1},x_t)\}dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
 
 Now to proceed with this decomposition. Notice that \(L_t : \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}\) is quadratic with respect to \(x_{t-1}\). By Lemma \ref{lemmaTaylorDecomp} we know that we can rewrite \(L_t\) using the extremum with respect to \(x_{t-1}: x_{t-1}^*\) \[
 L_t = \underline{L_t(x_{t-1}^*)} + \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*)
@@ -370,8 +370,7 @@ and
 = (G_t^TR_t^{-1}G_t)^T + (\Sigma_{t-1}^{-1})^T \hfill \text{(by Lemma \ref{lemma2})} \\
 = G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1} \equiv \Phi_t^{-1} \hfill \text{(by covariance matrix symmetry)}
 \end{multline*}
-
-Now we can compute the extremum:
+Notice that we assume the second derivative is invertible. Now we can compute the extremum:
 \begin{multline}
 \frac{\partial L_t}{\partial x_{t-1}} = 0 \\
 \implies (x_{t-1}^* - \mu_{t-1})^T \Sigma_{t-1}^{-1} = (x_t - g(\mu_{t-1}) - G_t (x_{t-1}^* - \mu_{t-1}))^T R_t^{-1} G_t \\
@@ -395,12 +394,11 @@ L_t(x_t) = L_t -  L_t(x_{t-1},x_t) \\
 = \frac{1}{2} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1})^T R_t^{-1} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1}) + \frac{1}{2} \mu_{t-1}^T \Sigma_{t-1}^{-1} \mu_{t-1} \\
 - \frac{1}{2} [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]^T \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
-Notice that the quadratic and linear \(x_{t-1}\) terms cancel out in \(L_t(x_t)\). This is to be expected from our decomposition, since \(L_t(x_t)\) should be a constant with respect to \(x_{t-1}\). Also, \(L_t(x_{t-1},x_t)\) is the negative of the exponent in a normal distribution, with covariance matrix \(\Phi_t\). Because all PDFs integrate to 1, we know:
+Notice that the quadratic and linear \(x_{t-1}\) terms cancel out in \(L_t(x_t)\). This is to be expected from our decomposition, since \(L_t(x_t)\) should be a constant with respect to \(x_{t-1}\). Also, comparing \(L_t(x_{t-1},x_t)\) to Eq. \ref{eqDefNormal}, we can see that it is the negative of the exponent in the \(N(x_{t-1};\Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}], \Phi_t)\) PDF. And because all PDFs integrate to 1, we know that:
 \begin{equation} \label{eqLtInt1}
 \int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\{-L_t(x_{t-1},x_t)\}dx_{t-1} = 1
 \end{equation}
-
-We now have all the pieces to further simplify \(\overline{\bel}(x_t)\):
+Now we have all the pieces needed to further simplify \(\overline{\bel}(x_t)\).
 \begin{multline} \label{belBarPartialDecomp}
 \overline{\bel}(x_t) \approx \eta_1 \int exp\{-L_t\}dx_{t-1} \hfill \text{(by Eq. \ref{eqBelBarLt})} \\
 = \eta_1 \int exp\{-L_t(x_{t-1},x_t) - L_t(x_t)\}dx_{t-1} \hfill \text{(by Eq. \ref{eqLtDecomp})} \\
@@ -576,7 +574,7 @@ In total the EKF algorithm has a computational complexity of \(max\)(O(\(n^{2.8}
 
 It is important to note that several assumptions made in the derivation are unlikely to be completely true in reality.
 
-We assumed that all PDFs were represented by normal distributions, meaning they are unimodal. For many sensor measurements, this makes sense: the reported measurement is the unimodal mean of the measurement PDF, and the estimated noise of that measurement is encoded in the covariance matrix. However, in situations in which there are two or more equally likely states, the belief distribution is poorly approximated by a unimodal distribution.
+We assumed that all PDFs were represented by normal distributions, meaning they are unimodal. For many sensor measurements, this makes sense: the reported measurement is the unimodal mean of the measurement PDF, and the estimated noise of that measurement is encoded in the covariance matrix. However, in situations in which there are two or more equally likely states, the belief distribution is poorly approximated by a unimodal distribution.sz
 
 We also used a first-order Taylor expansion to linearize the state transition and measurement models. If either \(g\) or \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF gives appreciable results in real-time. 
 
