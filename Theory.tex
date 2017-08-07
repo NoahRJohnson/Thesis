@@ -331,14 +331,18 @@ L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x
 \end{multline}
 
 By assumption, \(\overline{\bel}(x_t)\) is a normal distribution. We will define its mean and covariance to be \(\overline{\mu}\) and \(\overline{\Sigma}\) respectively. In order to compute these matrices, we would like to use Lemma \ref{lemmaHessianInverse}. However, to turn \(\overline{\bel}(x_t)\) into the proper form, we will have to get rid of the integral over \(x_{t-1}\). To do so, we will decompose \(L_t\) into two terms like so: \begin{equation} \label{eqLtDecomp}
-L_t = L_t(x_{t-1},x_t) + L_t(x_t)
+L_t(x_{t-1},x_t) = M_t(x_{t-1},x_t) + P_t(x_t)
 \end{equation}
-where all terms containing \(x_{t-1}\) are collected in \(L_t(x_{t-1},x_t)\). This will allow us to move \(L_t(x_t)\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int exp\{ -L_t(x_{t-1},x_t)\}dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
+where all terms containing \(x_{t-1}\) are collected in \(M_t\). This will allow us to move \(P_t\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int exp\{ -M_t(x_{t-1},x_t)\}dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
 
-Now to proceed with this decomposition. Notice that \(L_t : \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}\) is quadratic with respect to \(x_{t-1}\). By Lemma \ref{lemmaTaylorDecomp} we know that we can rewrite \(L_t\) using the extremum with respect to \(x_{t-1}: x_{t-1}^*\) \[
-L_t = \underline{L_t(x_{t-1}^*)} + \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*)
-\] 
-where the underlined term is \(L_t\) evaluated at \(x_{t-1}^*\). This will give us our desired decomposition, turning \(L_t\) into the sum of another quadratic expression w.r.t \(x_{t-1}\), and a constant term w.r.t \(x_{t-1}\). Let us now calculate the extremum \(x_{t-1}^*\). To do so, we will first have to find \(\frac{\partial L_t}{\partial x_{t-1}}\).
+Now to proceed with this decomposition. Notice that \(L_t : \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}\) is quadratic with respect to \(x_{t-1}\). By Lemma \ref{lemmaTaylorDecomp} we know that we can rewrite \(L_t\) using the extremum with respect to \(x_{t-1}: x_{t-1}^*\)
+\begin{equation} \label{eqLtDecompUsingLemma}
+L_t(x_{t-1},x_t) = L_t(x_{t-1}^*,x_t) + \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*)
+\end{equation}
+Then we can let \[
+P_t(x_t) = L_t(x_{t-1}^*,x_t) \\ M_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*)
+\]
+and we will have our desired decomposition in the form of Eq. \ref{eqLtDecomp}. To proceed with this decomposition, we need to calculate the extremum \(x_{t-1}^*\). To do so, we will first have to find \(\frac{\partial L_t}{\partial x_{t-1}}\).
 
 Define 
 \begin{multline*}
@@ -370,7 +374,7 @@ and
 = (G_t^TR_t^{-1}G_t)^T + (\Sigma_{t-1}^{-1})^T \hfill \text{(by Lemma \ref{lemma2})} \\
 = G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1} \equiv \Phi_t^{-1} \hfill \text{(by covariance matrix symmetry)}
 \end{multline*}
-Notice that we assume the second derivative is invertible. Now we can compute the extremum:
+Notice that we assume the second derivative is invertible. This will in fact always be true, since the sum is positive definite. Now we can set the first derivative of \(L_t\) to zero to compute its extremum:
 \begin{multline}
 \frac{\partial L_t}{\partial x_{t-1}} = 0 \\
 \implies (x_{t-1}^* - \mu_{t-1})^T \Sigma_{t-1}^{-1} = (x_t - g(\mu_{t-1}) - G_t (x_{t-1}^* - \mu_{t-1}))^T R_t^{-1} G_t \\
@@ -381,39 +385,40 @@ Notice that we assume the second derivative is invertible. Now we can compute th
 \end{multline}
 Thus we can construct our decomposition:
 \begin{multline*}
-L_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*)^T \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*) \\
+M_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*)^T \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*) \\
 = \frac{1}{2} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])^T \\
 * \Phi_t^{-1} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]) \hfill
 \end{multline*}
 and
-\begin{multline} \label{eqDefLtxt}
-L_t(x_t) = L_t -  L_t(x_{t-1},x_t) \\
+\begin{multline} \label{eqDefPt}
+P_t(x_t) = L_t(x_{t-1},x_t) -  M_t(x_{t-1},x_t) \\
 = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\\
 + \frac{1}{2} (x_t - \mu_t)^T \Sigma_{t-1}^{-1} (x_t - \mu_t) - \frac{1}{2} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])^T \\
 * \Phi_t^{-1} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]) \\
 = \frac{1}{2} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1})^T R_t^{-1} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1}) + \frac{1}{2} \mu_{t-1}^T \Sigma_{t-1}^{-1} \mu_{t-1} \\
 - \frac{1}{2} [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]^T \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
-Notice that the quadratic and linear \(x_{t-1}\) terms cancel out in \(L_t(x_t)\). This is to be expected from our decomposition, since \(L_t(x_t)\) should be a constant with respect to \(x_{t-1}\). Also, comparing \(L_t(x_{t-1},x_t)\) to Eq. \ref{eqDefNormal}, we can see that it is the negative of the exponent in the \(N(x_{t-1};\Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}], \Phi_t)\) PDF. And because all PDFs integrate to 1, we know that:
-\begin{equation} \label{eqLtInt1}
-\int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\{-L_t(x_{t-1},x_t)\}dx_{t-1} = 1
-\end{equation}
+Notice that the quadratic and linear \(x_{t-1}\) terms cancel out in \(P_t\). This is to be expected from our decomposition, since \(P_t\) should be a constant with respect to \(x_{t-1}\). Also, comparing \(M_t(x_{t-1},x_t)\) to Eq. \ref{eqDefNormal}, we can see that it is the negative of the exponent in the \(N(x_{t-1};\Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}], \Phi_t)\) distribution. And because all PDFs integrate to 1, we know that:
+\begin{multline} \label{eqLtInt1}
+\int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\{-M_t(x_{t-1},x_t)\}dx_{t-1} = 1 \\
+\implies \int exp\{-M_t(x_{t-1},x_t)\}dx_{t-1} = det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill
+\end{multline}
 Now we have all the pieces needed to further simplify \(\overline{\bel}(x_t)\).
 \begin{multline} \label{belBarPartialDecomp}
 \overline{\bel}(x_t) \approx \eta_1 \int exp\{-L_t\}dx_{t-1} \hfill \text{(by Eq. \ref{eqBelBarLt})} \\
-= \eta_1 \int exp\{-L_t(x_{t-1},x_t) - L_t(x_t)\}dx_{t-1} \hfill \text{(by Eq. \ref{eqLtDecomp})} \\
-= \eta_1 \int exp\{-L_t(x_{t-1},x_t)\} exp \{ - L_t(x_t)\}dx_{t-1} \\
-= \eta_1\ exp \{ - L_t(x_t)\} \int exp\{-L_t(x_{t-1},x_t)\} dx_{t-1} \\
-= \eta_1\ exp \{ - L_t(x_t)\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Eq. \ref{eqLtInt1})} \\
-= \eta_2\ exp \{ - L_t(x_t)\} \hfill
+= \eta_1 \int exp\{-M_t(x_{t-1},x_t) - P_t(x_t)\}dx_{t-1} \hfill \text{(by Eq. \ref{eqLtDecomp})} \\
+= \eta_1 \int exp\{-M_t(x_{t-1},x_t)\} exp \{ - P_t(x_t)\}dx_{t-1} \\
+= \eta_1\ exp \{ - P_t(x_t)\} \int exp\{-M_t(x_{t-1},x_t)\} dx_{t-1} \\
+= \eta_1\ exp \{ - P_t(x_t)\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Eq. \ref{eqLtInt1})} \\
+= \eta_2\ exp \{ - P_t(x_t)\} \hfill
 \end{multline}
 
 Notice that the \(det(2 \pi \Phi_t)^{\frac{1}{2}}\) term was absorbed into the normalizing constant \(\eta_2\), since it is a constant with respect to \(x_t\).
 
-Because \(L_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma \ref{lemmaHessianInverse} (based on Eq. \ref{belBarPartialDecomp} and \ref{eqDefLtxt}). So we know that the mean and covariance of the normal distribution representing \(\overline{\bel}(x_t)\) will be equal to the extremum of \(L_t(x_t)\), and the inverse of its second derivative. We will now compute these values.
+Because \(P_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma \ref{lemmaHessianInverse} (based on Eq. \ref{belBarPartialDecomp} and \ref{eqDefNt}). So we know that the mean and covariance of the normal distribution representing \(\overline{\bel}(x_t)\) will be equal to the extremum of \(P_t\), and the inverse of its second derivative. We will now compute these values.
 
 \begin{multline*}
-\frac{\partial L_t(x_t)}{\partial x_t} = \frac{\partial [\frac{1}{2} x_t^T R_t^{-1}x_t]}{\partial x_t} + \frac{\partial [\frac{1}{2} x_t^TR_t^{-1}(-g(\mu_{t-1})+G_t\mu_{t-1})]}{\partial x_t} \\
+\frac{\partial P_t}{\partial x_t} = \frac{\partial [\frac{1}{2} x_t^T R_t^{-1}x_t]}{\partial x_t} + \frac{\partial [\frac{1}{2} x_t^TR_t^{-1}(-g(\mu_{t-1})+G_t\mu_{t-1})]}{\partial x_t} \\
 + \frac{\partial [\frac{1}{2} (-g(\mu_{t-1})+G_t\mu_{t-1})R_t^{-1}x_t]}{\partial x_t} + \frac{\partial [-\frac{1}{2} x_t^TR_t^{-1}G_t\Phi_tG_t^TR_t^{-1}x_t]}{\partial x_t} \\
 + \frac{\partial [-\frac{1}{2} x_t^TR_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g_t + \Phi_t^{-1}\mu_{t-1})]}{\partial x_t} + \frac{\partial [-\frac{1}{2} (-G_t^TR_t^{-1}g_t + \Phi_t^{-1}\mu_{t-1})^T\Phi_tG_t^TR_t^{-1}x_t]}{\partial x_t} \\
 = R_t^{-1}x_t - (R_t^{-1}G_t\Phi_tG_t^TR_t^{-1})^Tx_t  \hfill \text{(by Lemma \ref{lemma1})} \\
@@ -426,7 +431,7 @@ Because \(L_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma 
 \end{multline*}
 
 \begin{multline*}
-\frac{\partial L_t(x_t)}{\partial x_t} = 0 \\
+\frac{\partial P_t}{\partial x_t} = 0 \\
 \implies \overline{\mu_t} = (R_t + G_t\Sigma_{t-1}G_t^T) [R_t^{-1}G_t\Phi_t(-G_t^TR_t^{-1}g(\mu_{t-1}) + \Phi_t^{-1}\mu_{t-1}) \\ - R_t^{-1}(-g(\mu_{t-1}) + G_t\mu_{t-1})] \\
 = (R_t + G_t\Sigma_{t-1}G_t^T) [-R_t^{-1}G_t\Phi_tG_t^TR_t^{-1}g(\mu_{t-1}) + R_t^{-1}G_t\mu_{t-1} \\ + R_t^{-1}g(\mu_{t-1}) - R_t^{-1}G_t\mu_{t-1}] \\
 = (R_t + G_t\Sigma_{t-1}G_t^T) [(R_t^{-1} - R_t^{-1}G_t(G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1})G_t^TR_t^{-1})g(\mu_{t-1}) \\
@@ -436,7 +441,7 @@ Because \(L_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma 
 \end{multline*}
 
 \begin{multline*}
-\frac{\partial^2 L_t(x_t) }{\partial x_t^2} = \frac{(R_t + G_t\Sigma_{t-1}G_t^T)^{-1}x_t}{\partial x_t^2} \\
+\frac{\partial^2 P_t }{\partial x_t^2} = \frac{(R_t + G_t\Sigma_{t-1}G_t^T)^{-1}x_t}{\partial x_t^2} \\
 = [(R_t + G_t\Sigma_{t-1}G_t^T)^{-1}]^T = (R_t + G_t\Sigma_{t-1}G_t^T)^{-1} \\
 \implies \overline{\Sigma_t} = R_t + G_t\Sigma_{t-1}G_t^T \hfill
 \end{multline*}
@@ -465,9 +470,7 @@ H_t = \begin{bmatrix}
 \frac{\partial h_k(\overline{\mu_t})}{\partial x_{1_{t-1}}} & \dots & \frac{\partial h_k(\overline{\mu_t})}{\partial x_{n_{t-1}}} 
 \end{bmatrix} \] is the Jacobian of \(h\) evaluated at \(\overline{\mu_t}\).
 
-Then in the same manner as we did with the state transition PDF, we can calculate the mean of the measurement PDF \(E[Z_t]\) to be \(h(\overline{\mu_t}) + H_t (X_t - \overline{\mu_t})\), with covariance matrix \(Q_t\). Thus the measurement PDF has the form \[p(z_t \mathbin{\vert} x_t)  \approx N(z_t;h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}),Q_t)\] Note that just as before, the covariance matrix \(Q_t\) is symmetric by definition.
-
-We will begin by rewriting the update step using the normal distribution definitions.
+Then in the same manner as we did with the state transition PDF, we can calculate the mean of the measurement PDF \(E[Z_t]\) to be \(h(\overline{\mu_t}) + H_t (X_t - \overline{\mu_t})\), with covariance matrix \(Q_t\). Thus the measurement PDF has the form \[p(z_t \mathbin{\vert} x_t)  \approx N(z_t;h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}),Q_t)\] Note that just as before, the covariance matrix \(Q_t\) is symmetric by definition. Now we can rewrite the update step using the normal distribution definitions.
 \begin{multline*}
 \bel(x_t) = \eta_1\ p(z_t \mathbin{\vert} x_t) \overline{\bel}(x_t) \\
 \approx \eta_1\ det(2 \pi Q_t)^{-\frac{1}{2}} det(2 \pi \overline{\Sigma_t})^{-\frac{1}{2}} exp\{-\frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T \\ * Q_t^{-1} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))\} * exp \{-\frac{1}{2} (x_t - \overline{\mu_t})^T \overline{\Sigma_t}^{-1} (x_t - \overline{\mu_t}) \} \\
@@ -477,7 +480,7 @@ J_t = \frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T Q
 + \frac{1}{2} (x_t - \overline{\mu_t})^T \overline{\Sigma_t}^{-1} (x_t - \overline{\mu_t})
 \]
 
-\(\bel(x_t)\) must be normally distributed by assumption. We will denote its mean and covariance matrix by \(\mu\) and \(\Sigma\). This time there is no integral, and so we can immediately apply Lemma \ref{lemmaHessianInverse}. 
+\(\bel(x_t)\) must be normally distributed by assumption. We will denote its mean and covariance matrix by \(\mu\) and \(\Sigma\). This time there is no integral, and so we need not decompose \(J_t\). We can instead immediately apply Lemma \ref{lemmaHessianInverse}. 
 Therefore the mean and covariance of the normal distribution representing \(\bel(x_t)\) will be equal to the extremum of \(J_t\), and the inverse of its second derivative. Let us now compute these values.
 
 \begin{multline*}
