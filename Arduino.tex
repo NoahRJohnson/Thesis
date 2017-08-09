@@ -73,17 +73,14 @@ The basic idea is shown in the following code fragment:
 This code is executed inside the sketch's main loop, and a similar while-loop is run right after, which decrements the servo position back to SERVO\_RIGHT. millis() is an Arduino built-in function which uses a hardware timer to count how many milliseconds have passed since the board was turned on. The callback handling that occurs while waiting reads the incoming serial buffer for any data, and if motor commands are found, executes an appropriate callback function. publishSensorMessages() sends over serial the ultrasonic echo time, the servo's current angle, and the tick count of both encoders (see next section). Section \ref{sectionRosSerial} will describe how this data is passed between the laptop and Arduino.
 
 \subsection{Quadrature Encoders} \label{sectionQuadEncoders}
-An important function of the Arduino sketch is to track the movement of the motors. Our system may command the motor driver to move the rover's wheels with a certain fraction of the maximum available power, but it is difficult to predict with precision the resulting angular velocity. For one thing, the RPM of DC motors is proportional to the supplied voltage. But the voltage supplied to the motors through the motor driver is coming from an external li-po battery pack, which generates variable voltage. It starts at 8.4V and drops to a minimum of 6.0V before the motor driver shuts off. Thus even if the same servo control pulse is continuously sent to the motor driver, the motors' angular velocity will decrease over time.
+An important function of the Arduino sketch is to track the movement of the motors. Our system may command the motor driver to move the rover's wheels with a certain fraction of the maximum available power, but it is difficult to predict with precision the resulting angular velocity.
 
-In order to measure the angular velocity of the motors, motor encoders are attached. These feedback devices are incremental position encoders, meaning they monitor the change in the motor shaft's position compared to its starting position. 
-
-\begin{wrapfigure}{L}{0.5\textwidth}
+In order to measure the angular velocity of the motors, motor encoders are attached. These feedback devices are incremental position encoders, meaning they monitor the change in the motor shaft's position compared to its starting position. \begin{wrapfigure}{L}{0.5\textwidth}
 	\caption{\cite{fig_optical_encoders}}
 	\centering
 	\includegraphics[width=0.5\textwidth]{opticalEncoders}
 	\label{FigOpticalEncoders}
-\end{wrapfigure}
-
+\end{wrapfigure} 
 The motor encoders which came with the Lynxmotion rover kit are optical quadrature encoders. This type of encoder attaches a flat disk with thin slits known as the code disk to the motor's gear shaft. Two photodiodes, components which transform light into electric current, are placed above the disk side by side. A light source shines light through the disk from the other side. Figure \ref{FigOpticalEncoders} gives a visual illustration.
 
 As the motor spins the gear shaft, the code disk turns with it. This produces an on-off pattern of light on the photodiodes, which produce two square waves as signal outputs. These two channels of output pulses are referred to as channels A and B. Depending on the direction of rotation, channel A's square wave will either lag behind or be ahead of channel B. This can be seen in Figure \ref{FigQuadChannels} which shows example output pulses as a motor turns clockwise (CW) or counter-clockwise (CCW). \cite{encoderBlog}
