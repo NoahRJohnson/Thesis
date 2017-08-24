@@ -8,7 +8,7 @@ This chapter will dive into the mathematical theory behind the recursive state e
 To gather information about their environment, robots use sensor data. This data always has some amount of random noise associated with it. Thus probability theory is vital to creating models which incorporate  this uncertainty. Here we will review some probability theory results which will be needed in this chapter.
 
 % technically p(X=x) = 0 for continuous PDFs, but we're working with finite precision computers so who cares. It's easier to think of this way.
-Random variables are objects from which specific numbers may be observed. Let X be a continuous random variable - that is, observations of X are real numbers. We will represent the probability of observing any particular real number x from X as \( p(X = x) \equiv p(x)\). This defines a function \(p: \mathbb{R} \to \mathbb{R}\) representing the distribution of probabilities across the real numbers. Throughout this chapter, we will refer to such functions as Probability Density Functions (PDFs). Note the basic result that for every PDF \(p\) constructed from a random variable X, \(\int p(x)dx = 1\), which is to say that the observed value from X will be some real number with 100\% certainty.
+Random variables are objects from which specific numbers may be observed. Let X be a continuous random variable - that is, observations of X are real numbers. We will represent the probability of observing any particular real number x from X as \( p(X = x) \equiv p(x)\). This defines a function \(p: \mathbb{R} \to [0,1]\) representing the distribution of probabilities across the real numbers. Throughout this chapter, we will refer to such functions as Probability Density Functions (PDFs). Note the basic result that for every PDF \(p\) constructed from a random variable X, \(\int_{-\infty}^{+\infty} p(x)dx = 1\), which is to say that the observed value from X will be some real number with 100\% certainty.
 
 An important tool for describing PDFs is their expectation. \(E[X]\) is the expected value or mean of X. Note that the expectation operator is linear: \(E[\alpha X + \beta Y] = \alpha E[X] + \beta E[Y]\).
 
@@ -17,7 +17,7 @@ For two random variables X and Y, we will define their covariance to be
 cov(X,Y) = E[(X - E[X])(Y - E[Y])]
 \] This gives a measure of the co-dependence between X and Y.
 
-The same concepts may be scaled up to random vectors, which are \(n\)-dimensional collections of random variables. Then \(X = (X_1,X_2,...,X_n)^T\), and \(p:\mathbb{R}^n \to \mathbb{R}\) still defines a PDF. The expectation becomes \[
+The same concepts may be scaled up to random vectors, which are \(n\)-dimensional collections of random variables. Then \(X = (X_1,X_2,...,X_n)^T\), and \(p:\mathbb{R}^n \to [0,1]\) still defines a PDF. The expectation becomes \[
 E[X] = \begin{pmatrix}
 E[X_1] \\
 \vdots \\
@@ -42,8 +42,8 @@ p(x \mathbin{\vert} y,z) = \frac{p(x,y,z)}{p(y,z)}
 
 The \textit{Law of Total Probability} states that \(p(x) = \int p(x,y)dy\). Conditioning this law on a third random variable Z, and incorporating the definition of conditional probability (Eq. \ref{eqCondProb}), we end up with the following version of this law:
 \begin{multline} \label{eqTotalProb}
-p(x \mathbin{\vert} z) = \int p(x,y \mathbin{\vert} z)dy = \int \frac{p(x,y,z)}{p(z)}  \\
-= \int \frac{p(x,y,z)}{p(y,z)} * \frac{p(y,z)}{p(z)} = \int p(x \mathbin{\vert} y,z) p(y\mathbin{\vert}z)dy \hfill
+p(x \mathbin{\vert} z) = \int p(x,y \mathbin{\vert} z)dy = \int \frac{p(x,y,z)}{p(z)}dy  \\
+= \int \frac{p(x,y,z)}{p(y,z)} * \frac{p(y,z)}{p(z)}dy = \int p(x \mathbin{\vert} y,z) p(y\mathbin{\vert}z)dy \hfill
 \end{multline}
 
 In a similar fashion, we can use the definition of conditional probability (Eq. \ref{eqCondProb}) to derive a version of Bayes' Rule. 
@@ -126,14 +126,13 @@ where \(E[X]\) and \(\Sigma\) are the mean and covariance matrix of the random v
 \end{equation}
 where \(\mu_t = E[X_t]\) is the mean or best state estimate, and \(\Sigma_t\) is the covariance matrix or uncertainty. These are the values which our new algorithm will try to compute; doing so will completely describe \(\bel(x_t)\).
 
-Recall that Algorithm \ref{alg:BayesFilter} (Bayes' Filter) requires that the state transition PDF \(p(x_t \mathbin{\vert} x_{t-1})\) be given. So let us assume that the evolution of state is known via some model \[X_t =  g(X_{t-1}) + \epsilon_t\] where \(g: \mathbb{R}^n \to \mathbb{R}^n\) is some arbitrary function defining how the state evolves, and \(\epsilon_t\) is additive noise in the model. We will define \(\epsilon_t\) to be a random vector of normal distribution with mean 0 and covariance matrix \(R_t\).
+Recall that Algorithm \ref{alg:BayesFilter} (Bayes' Filter) requires that the state transition PDF \(p(x_t \mathbin{\vert} x_{t-1})\) be given. So let us assume that the evolution of state is known via some model \[X_t =  g(X_{t-1}) + \epsilon_t\] where \(g: \mathbb{R}^n \to \mathbb{R}^n\) is some arbitrary function defining how the state evolves, and \(\epsilon_t\) is additive noise in the model. We will define \(\epsilon_t\) to be independent and identically distributed  random vectors of normal distribution, with mean 0 and covariance matrix \(R_t\).
 
 % Why must we linearize?
-%In order to
-If \(g\) is nonlinear, then it will distort the prior belief such that the posterior belief will no longer be normally distributed. In order to maintain our normal distribution assumption, we will have to make an approximation to the model. We will do so by linearizing this model using a first-order Taylor series approximation around the current best estimate, \(\mu_{t-1}\).
+If \(g\) is nonlinear, then it will distort the prior belief such that the posterior belief will no longer be normally distributed. In order to maintain our normal distribution assumption, we will have to make an approximation to the model. We will do so by linearizing \(g\) using a first-order Taylor series approximation around the current best estimate, \(\mu_{t-1}\).
 \begin{multline*}
-g(X_{t-1}) \approx g(\mu_{t-1}) + \frac{\partial g(\mu_{t-1})}{\partial X_{t-1}} (X_{t-1} - \mu_{t-1}) \\
-= g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) \hfill
+g(X_{t-1}) = g(\mu_{t-1}) + \frac{\partial g(\mu_{t-1})}{\partial X_{t-1}} (X_{t-1} - \mu_{t-1}) + O((X_{t-1} - \mu_{t-1})^2) \\
+\approx g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) \hfill
 \end{multline*}
 where \[
 G_t = \begin{bmatrix} 
@@ -142,30 +141,31 @@ G_t = \begin{bmatrix}
 \frac{\partial g_n(\mu_{t-1})}{\partial X_{1_{t-1}}} & \dots & \frac{\partial g_n(\mu_{t-1})}{\partial X_{n_{t-1}}} 
 \end{bmatrix} \] is the Jacobian of \(g\) evaluated at \(\mu_{t-1}\). Then our approximate model is given by
 \begin{equation*}
-X_t \approx g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t
+X_t = g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t
 \end{equation*}
-To describe the state transition PDF \(p(x_t \mathbin{\vert} x_{t-1})\), we are interested in finding its expectation and covariance matrix. Because its PDF is conditioned on \(x_{t-1}\), we likewise will condition its expectation. Then we can calculate the mean:
+To describe the state transition PDF \(p(x_t \mathbin{\vert} x_{t-1})\), we are interested in finding its expectation and covariance matrix. We can do so directly from the approximate model \(X_t\) using the expectation operator introduced in Section \ref{sectionProbTheory}. Because the state transition PDF is conditioned on \(x_{t-1}\), we likewise will condition the expectation on \(X_{t-1}\). Then we can calculate the mean:
 \begin{multline*}
-E[X_t\ \mathbin{\vert} X_{t-1}] \approx E[g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t\ \mathbin{\vert} X_{t-1}] \\
+E[X_t\ \mathbin{\vert} X_{t-1}] = E[g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t\ \mathbin{\vert} X_{t-1}] \\
 = E[g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1})\ \mathbin{\vert} X_{t-1}] + E[\epsilon_t\ \mathbin{\vert} X_{t-1}] \hfill \text{(by linearity of E[X])} \\
 = E[g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1})\ \mathbin{\vert} X_{t-1}] \hfill \text{(by the definition of \(\epsilon_t\))} \\
 = g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) \hfill
 \end{multline*}
+
 and the covariance matrix:
 \begin{multline*}
-E[(X_t - E[X_t])(X_t - E[X_t])^T\ \mathbin{\vert} X_{t-1}] \\ \approx E[(g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t - g(\mu_{t-1}) - G_t (X_{t-1} - \mu_{t-1})) \\
+E[(X_t - E[X_t])(X_t - E[X_t])^T\ \mathbin{\vert} X_{t-1}] \\ = E[(g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t - g(\mu_{t-1}) - G_t (X_{t-1} - \mu_{t-1})) \\
 * (g(\mu_{t-1}) + G_t (X_{t-1} - \mu_{t-1}) + \epsilon_t - g(\mu_{t-1}) - G_t (X_{t-1} - \mu_{t-1}))^T\ \mathbin{\vert} X_{t-1}] \\
 = E[\epsilon_t \epsilon_t^T\ \mathbin{\vert} X_{t-1}] = E[(\epsilon_t - 0)(\epsilon_t - 0)^T\ \mathbin{\vert} X_{t-1}] \\
 = E[(\epsilon_t - E[\epsilon_t\ \mathbin{\vert} X_{t-1}])(\epsilon_t - E[\epsilon_t\ \mathbin{\vert} X_{t-1}])^T\ \mathbin{\vert} X_{t-1}] \\
 = R_t \hfill \text{(by the definition of \(\epsilon_t\))} \end{multline*}
-and so its Gaussian distribution is approximately
+and so the approximate Gaussian distribution describing the state transition PDF is
 \begin{equation} \label{eqStateTransitionNormalDef}
-p(x_t \mathbin{\vert} x_{t-1}) \approx N(x_t;g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}),R_t)
+p(x_t \mathbin{\vert} x_{t-1}) = N(x_t;g(\mu_{t-1}) + G_t (x_{t-1} - \mu_{t-1}),R_t)
 \end{equation}
 
 \subsection{Matrix Calculus}
 % talk about matrix calculus and vector differentiation. (AB)^T = B^T A^T, (A+B)^T = A^T + B^T, if A is symmetric then so is A^-1, lemmas etc.
-For the mathematical derivation of the EKF which lies ahead, we will be working with matrix calculus.
+For the mathematical derivation of the Extended Kalman Filter which lies ahead, we will be working with matrix calculus.
 
 For the benefit of the unfamiliar reader, here we will restate some elementary results which will be needed to follow along.
 
@@ -175,15 +175,15 @@ A = \begin{pmatrix}
 A_{11}  \dots A_{1n} \\
 \vdots  \ddots  \vdots \\
 A_{n1} \dots  A_{nn}
-\end{pmatrix}  \implies A^T = \begin{pmatrix}
+\end{pmatrix} \implies A^T = \begin{pmatrix}
 A_{11}  \dots A_{n1} \\
 \vdots  \ddots  \vdots  \\
 A_{1n} \dots A_{nn}
 \end{pmatrix} \\
 (AB)^T = B^T A^T \\
 (A+B)^T = A^T + B^T \\
-A \text{ is symmetric} \implies A^T = A \\
-A \text{ is symmetric } \implies A^{-1} \text{ is symmetric } 
+A \text{ is symmetric} \implies A = A^T \\
+A \text{ is symmetric and invertible } \implies A^{-1} \text{ is symmetric } 
 \end{gather}
 
 \begin{lemma} \label{lemma1}
@@ -250,9 +250,9 @@ A \text{ is symmetric } \implies A^{-1} \text{ is symmetric }
 
 \begin{lemma} \label{lemmaTaylorDecomp}
 Let \(f: \mathbb{R}^n \to \mathbb{R}\) be a quadratic function given by \[f(x) = x^T Ax + Bx + C\]
-where \(A\) is a symmetric matrix of dimension \(n \times n\), \(B\) is a matrix of dimension \(1 \times n\), and \(C \in \mathbb{R}\). Then \[
-f(x) = f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*)
-\] where \(\frac{\partial f}{\partial x}(x^*) = 0\). 
+where \(A\) is a symmetric matrix of dimension \(n \times n\), \(B\) is a matrix of dimension \(1 \times n\), and \(C \in \mathbb{R}\). Then \(\exists x^* \in \mathbb{R}^n\) such that \(\frac{\partial f}{\partial x}(x^*) = 0\), and  \[
+f(x) = f(x^*) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*)
+\] 
 
 \normalfont {\textbf{Note:} This is a higher-dimensional application of Taylor's Theorem.}
 
@@ -262,7 +262,7 @@ f(x) = f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*)
 \frac{\partial f}{\partial x} = \frac{\partial (x^T A x)}{\partial x} + \frac{\partial (B x)}{\partial x} + \frac{\partial (C)}{\partial x} = 2Ax + B^T \hfill \text{(by prior Lemmas)} \\
 \therefore \frac{\partial f}{\partial x} = 0 \implies x^* = -\frac{1}{2} A^{-1} B^T \\ \\
 \frac{\partial^2 f}{\partial x^2} = \frac{\partial (2Ax)}{\partial x} + \frac{\partial (B^T)}{\partial x} = 2A^T = 2A \hfill \text{(by symmetry of A)} \\ \\
-f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*) \\
+f(x^*) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*) \\
 = (-\frac{1}{2}A^{-1}B^T)^T A (-\frac{1}{2}A^{-1}B^T) + B(-\frac{1}{2}A^{-1}B^T) + C \\
 + \frac{1}{2}(x +\frac{1}{2}A^{-1}B^T)^T (2A) (x +\frac{1}{2}A^{-1}B^T) \\
 = \frac{1}{4} B A^{-1} B^T - \frac{1}{2} B A^{-1} B^T + C + x^T A x + \frac{1}{2}Bx + \frac{1}{4} BA^{-1}B^T + \frac{1}{2}x^TB^T \\
@@ -272,8 +272,8 @@ f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*) \\
 
 \begin{lemma} 
 	\label{lemmaHessianInverse}
-	Let \(p: \mathbb{R}^n \to \mathbb{R}\) be a PDF given by \[
-	p(x) = \eta_1\ exp\{ - L(x) \}
+	Let \(p: \mathbb{R}^n \to [0,1]\) be a PDF given by \[
+	p(x) = \eta_1\ exp\left\{ - L(x) \right\}
 	\]
 	where \(L: \mathbb{R}^n \to \mathbb{R}\), \(L(x) = x^T Ax + Bx + C\), and \(\eta_1\) is a normalizing constant. Then \(p\) defines a normal distribution with mean equal to the extremum of L, and covariance matrix equal to \((\frac{\partial^2 L}{\partial x})^{-1}\).
 \end{lemma}
@@ -283,9 +283,9 @@ f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*) \\
 	\] where \(x^*\) is the extremum of \(L\).
 	Therefore we can rewrite \(p\) as
 	\begin{multline*}
-	p(x) = \eta_1\ exp\{ -L(a) - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\} \\
-	= \eta_1\ exp \{ -L(a) \} exp \{ - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\} \} \\
-	= \eta_2\ exp \{ - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\} \} \hfill
+	p(x) = \eta_1\ exp\Bigl\{ -L(a) - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\Bigr\} \\
+	= \eta_1\ exp \Bigl\{ -L(a) \Bigr\} exp \Bigl\{ - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\Bigr\} \\
+	= \eta_2\ exp \Bigl\{ - \frac{1}{2} (x-x^*)^T \frac{\partial^2 L}{\partial x^2} (x-x^*)\Bigr\} \hfill
 	\end{multline*}
 	Compare this form of \(p\) to the definition of the normal distribution given in Eq. \ref{eqDefNormal}. This is just a normal distribution, where \(E[X] = x^*\) and \(\Sigma^{-1} = \frac{\partial^2 L}{\partial x^2}\). Therefore the mean of \(p\) is the extremum of \(L\), and the covariance matrix of \(p\) is the inverse of the second derivative of \(L\). 
 	%They share the same form, and since they are both PDFs, they integrate to 1., and therefore their normalizing constants \(\eta_2\) and \(\) are equal. They are 
@@ -293,7 +293,7 @@ f(a) + \frac{1}{2} (x-x^*)^T \frac{\partial^2 f}{\partial x^2} (x-x^*) \\
 
 \begin{lemma}{\textbf{Inversion Lemma \cite{probabilisticRobotics}}} \label{lemmaInversion}
 	
-For \(R \in \mathbb{R}^{nxn}, Q \in \mathbb{R}^{kxk}, P \in \mathbb{R}^{nxk}\) where \(R\), \(Q\), and \(P\) are all invertible:
+For \(R \in \mathbb{R}^{nxn}, Q \in \mathbb{R}^{kxk}, P \in \mathbb{R}^{nxk}\) where \(R\) and \(Q\) are invertible:
 \[
 (R + PQP^T)^{-1} = R^{-1} - R^{-1}P(Q^{-1} + P^T R^{-1}P)^{-1} P^T R^{-1}
 \]
@@ -321,11 +321,11 @@ Note that in the following mathematical derivation, because cov(X,Y) = cov(Y,X),
 We can now begin by rewriting Line 2 of Algorithm \ref{alg:BayesFilter} (the Bayes Filter) using our normal PDF definitions (Eqs. \ref{eqBelNormalDef} and \ref{eqStateTransitionNormalDef}):
 \begin{multline} \label{eqBelBarLt}
 \overline{\bel}(x_t) = \int p(x_t \mathbin{\vert} x_{t-1}) \bel(x_{t-1})dx_{t-1} \\
-\approx det(2 \pi R_t)^{-\frac{1}{2}} det(2 \pi \Sigma_{t-1})^{-\frac{1}{2}} \int [ exp\{-\frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T \\ * R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\} * exp \{-\frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \}dx_{t-1} ] \\
-= \eta \int exp\{-L_t\}dx_{t-1} \hfill
+\approx det(2 \pi R_t)^{-\frac{1}{2}} det(2 \pi \Sigma_{t-1})^{-\frac{1}{2}} \int \Bigl[ exp\Bigl\{-\frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T \\ * R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) \Bigr\} * exp \Bigl\{-\frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \Bigr\}dx_{t-1} \Bigr] \\
+= \eta \int exp\Bigl\{-L_t\Bigr\}dx_{t-1} \hfill
 \end{multline}
 where the determinants are absorbed into a normalizing constant \(\eta\), and we have defined
-\begin{multline}
+\begin{multline} \label{eqDefLt}
 L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))\\
 + \frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \hfill
 \end{multline}
@@ -333,7 +333,7 @@ L_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x
 By assumption, \(\overline{\bel}(x_t)\) is a normal distribution. We will define its mean and covariance to be \(\overline{\mu}\) and \(\overline{\Sigma}\) respectively. In order to compute these matrices, we would like to use Lemma \ref{lemmaHessianInverse}. However, to turn \(\overline{\bel}(x_t)\) into the proper form, we will have to get rid of the integral over \(x_{t-1}\). To do so, we will decompose \(L_t\) into two terms like so: \begin{equation} \label{eqLtDecomp}
 L_t(x_{t-1},x_t) = M_t(x_{t-1},x_t) + P_t(x_t)
 \end{equation}
-where all terms containing \(x_{t-1}\) are collected in \(M_t\). This will allow us to move \(P_t\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int exp\{ -M_t(x_{t-1},x_t)\}dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
+where all terms containing \(x_{t-1}\) are collected in \(M_t\). This will allow us to move \(P_t\) outside of \(\overline{\bel}(x_t)\)'s integral, as it will not depend on \(x_{t-1}\). Then, as long as we choose our decomposition so that \(\int exp\Bigl\{ -M_t(x_{t-1},x_t)\Bigr\}dx_{t-1}\) does not depend on \(x_t\), we will be left with \(\overline{\bel}(x_t)\) in a form where we can apply Lemma \ref{lemmaHessianInverse}.
 
 Now to proceed with this decomposition. Notice that \(L_t : \mathbb{R}^n \times \mathbb{R}^n \to \mathbb{R}\) is quadratic with respect to \(x_{t-1}\). By Lemma \ref{lemmaTaylorDecomp} we know that we can rewrite \(L_t\) using the extremum with respect to \(x_{t-1}: x_{t-1}^*\)
 \begin{equation} \label{eqLtDecompUsingLemma}
@@ -342,39 +342,17 @@ L_t(x_{t-1},x_t) = L_t(x_{t-1}^*,x_t) + \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{
 Then we can let \[
 P_t(x_t) = L_t(x_{t-1}^*,x_t) \\ M_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*) \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*)
 \]
-and we will have our desired decomposition in the form of Eq. \ref{eqLtDecomp}. To proceed with this decomposition, we need to calculate the extremum \(x_{t-1}^*\). To do so, we will first have to find \(\frac{\partial L_t}{\partial x_{t-1}}\).
-
-Define 
+and we will have our desired decomposition in the form of Eq. \ref{eqLtDecomp}. To proceed with this decomposition, we need to calculate the extremum \(x_{t-1}^*\) and the second derivative \(\frac{\partial^2 L_t}{\partial x_{t-1}^2}\). To do so, we will first have to find \(\frac{\partial L_t}{\partial x_{t-1}}\). By expanding Eq. \ref{eqDefLt} into its quadratic and linear terms, and repeatedly applying Lemmas \ref{lemma1} and \ref{lemma2}, the result is calculated directly. This lengthy calculation is skipped here, and the final result is shown:
 \begin{multline*}
-L^1_t = \frac{1}{2} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))^T R_t^{-1} (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) \\
-L^2_t = \frac{1}{2} (x_t - \mu_{t-1})^T \Sigma_{t-1}^{-1} (x_t - \mu_{t-1}) \hfill
+\frac{\partial L_t}{\partial x_{t-1}} = -G_t^TR_t^{-1}(x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) + \Sigma_{t-1}^{-1}(x_{t-1} - \mu_{t-1}) \hfill
 \end{multline*}
-then
-\begin{multline*}
-\frac{\partial L_t}{\partial x_{t-1}} = \frac{\partial (L^1_t + L^2_t)}{\partial x_{t-1}} = \frac{\partial L^1_t}{\partial x_{t-1}} + \frac{\partial L^2_t}{\partial x_{t-1}} \hfill
-\end{multline*}
-and
-\begin{multline*}
-\frac{\partial L^1_t}{\partial x_{t-1}} = \frac{\partial (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))}{\partial x_{t-1}} \\ 
-* \frac{\partial L^1_t}{\partial (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))} \hfill \text{(by Chain Rule)} \\
-= (-G_t^T) * \frac{\partial L^1_t}{\partial (x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1}))} \hfill \text{(by Lemma \ref{lemma2})} \\
-= -G_t^TR_t^{-1}(x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) \hfill \text{(by Lemma \ref{lemma1})}
-\end{multline*}
-\begin{multline*}
-\frac{\partial L^2_t}{\partial x_{t-1}} = \frac{\partial L^2_t}{\partial (x_{t-1} - \mu_{t-1})} * \frac{\partial (x_{t-1} - \mu_{t-1})}{\partial x_{t-1}} = \frac{\partial L^2_t}{\partial (x_{t-1} - \mu_{t-1})} \\
-= \frac{1}{2} (2\Sigma_{t-1}^{-1}) (x_{t-1} - \mu_{t-1}) =  \Sigma_{t-1}^{-1}(x_{t-1} - \mu_{t-1}) \hfill \text{(by Lemma \ref{lemma1})}
-\end{multline*}
-which means
-\begin{multline*}
-\frac{\partial L_t}{\partial x_{t-1}} = -G_t^TR_t^{-1}(x_t - g(\mu_{t-1}) - G_t (x_{t-1} - \mu_{t-1})) + \Sigma_{t-1}^{-1}(x_{t-1} - \mu_{t-1})
-\end{multline*}
-and
+Then the second derivative is given by:
 \begin{multline*}
 \frac{\partial^2 L_t}{\partial x_{t-1}^2} = \frac{\partial (G_t^TR_t^{-1}G_tx_{t-1} + \Sigma_{t-1}^{-1}x_{t-1})}{\partial x_{t-1}} \\
 = (G_t^TR_t^{-1}G_t)^T + (\Sigma_{t-1}^{-1})^T \hfill \text{(by Lemma \ref{lemma2})} \\
 = G_t^TR_t^{-1}G_t + \Sigma_{t-1}^{-1} \equiv \Phi_t^{-1} \hfill \text{(by covariance matrix symmetry)}
 \end{multline*}
-Notice that we assume the second derivative is invertible. This will in fact always be true, since the sum is positive definite. Now we can set the first derivative of \(L_t\) to zero to compute its extremum:
+Notice that we assume the second derivative is invertible. This will in fact always be true, since the operator is positive definite. Now we can set the first derivative of \(L_t\) to zero to compute its extremum:
 \begin{multline}
 \frac{\partial L_t}{\partial x_{t-1}} = 0 \\
 \implies (x_{t-1}^* - \mu_{t-1})^T \Sigma_{t-1}^{-1} = (x_t - g(\mu_{t-1}) - G_t (x_{t-1}^* - \mu_{t-1}))^T R_t^{-1} G_t \\
@@ -383,7 +361,7 @@ Notice that we assume the second derivative is invertible. This will in fact alw
 \implies \Phi_t^{-1} x_{t-1}^* = G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1} \\
 \implies x_{t-1}^* = \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
-Thus we can construct our decomposition:
+So our decomposition is given by:
 \begin{multline*}
 M_t(x_{t-1},x_t) = \frac{1}{2} (x_{t-1} - x_{t-1}^*)^T \frac{\partial^2 L_t}{\partial x_{t-1}^2} (x_{t-1} - x_{t-1}^*) \\
 = \frac{1}{2} (x_{t-1} - \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}])^T \\
@@ -398,24 +376,24 @@ P_t(x_t) = L_t(x_{t-1},x_t) -  M_t(x_{t-1},x_t) \\
 = \frac{1}{2} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1})^T R_t^{-1} (x_t - g(\mu_{t-1}) + G_t \mu_{t-1}) + \frac{1}{2} \mu_{t-1}^T \Sigma_{t-1}^{-1} \mu_{t-1} \\
 - \frac{1}{2} [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}]^T \Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}] \hfill
 \end{multline}
-Notice that the quadratic and linear \(x_{t-1}\) terms cancel out in \(P_t\). This is to be expected from our decomposition, since \(P_t\) should be a constant with respect to \(x_{t-1}\). Also, comparing \(M_t(x_{t-1},x_t)\) to Eq. \ref{eqDefNormal}, we can see that it is the negative of the exponent in the \(N(x_{t-1};\Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}], \Phi_t)\) distribution. And because all PDFs integrate to 1, we know that:
+Notice that the quadratic and linear \(x_{t-1}\) terms canceled out in \(P_t\). This is to be expected from our decomposition, since \(P_t(x_t)\) should be constant with respect to \(x_{t-1}\). Also, comparing \(M_t(x_{t-1},x_t)\) to Eq. \ref{eqDefNormal}, we can see that it is the negative of the exponent in the \(N(x_{t-1};\Phi_t [G_t^T R_t^{-1}  (x_t - g(\mu_{t-1})) + \Phi_t^{-1} \mu_{t-1}], \Phi_t)\) distribution. And because all PDFs integrate to 1, we know that:
 \begin{multline} \label{eqLtInt1}
-\int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\{-M_t(x_{t-1},x_t)\}dx_{t-1} = 1 \\
-\implies \int exp\{-M_t(x_{t-1},x_t)\}dx_{t-1} = det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill
+\int det(2 \pi \Phi_t)^{-\frac{1}{2}} exp\Bigl\{-M_t(x_{t-1},x_t)\Bigr\}dx_{t-1} = 1 \\
+\implies \int exp\Bigl\{-M_t(x_{t-1},x_t)\Bigr\}dx_{t-1} = det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill
 \end{multline}
 Now we have all the pieces needed to further simplify \(\overline{\bel}(x_t)\).
 \begin{multline} \label{belBarPartialDecomp}
-\overline{\bel}(x_t) \approx \eta_1 \int exp\{-L_t\}dx_{t-1} \hfill \text{(by Eq. \ref{eqBelBarLt})} \\
-= \eta_1 \int exp\{-M_t(x_{t-1},x_t) - P_t(x_t)\}dx_{t-1} \hfill \text{(by Eq. \ref{eqLtDecomp})} \\
-= \eta_1 \int exp\{-M_t(x_{t-1},x_t)\} exp \{ - P_t(x_t)\}dx_{t-1} \\
-= \eta_1\ exp \{ - P_t(x_t)\} \int exp\{-M_t(x_{t-1},x_t)\} dx_{t-1} \\
-= \eta_1\ exp \{ - P_t(x_t)\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Eq. \ref{eqLtInt1})} \\
-= \eta_2\ exp \{ - P_t(x_t)\} \hfill
+\overline{\bel}(x_t) \approx \eta_1 \int exp\Bigl\{-L_t\Bigr\}dx_{t-1} \hfill \text{(by Eq. \ref{eqBelBarLt})} \\
+= \eta_1 \int exp\Bigl\{-M_t(x_{t-1},x_t) - P_t(x_t)\Bigr\}dx_{t-1} \hfill \text{(by Eq. \ref{eqLtDecomp})} \\
+= \eta_1 \int exp\Bigl\{-M_t(x_{t-1},x_t)\Bigr\} exp \Bigl\{ - P_t(x_t)\Bigr\}dx_{t-1} \\
+= \eta_1\ exp \Bigl\{ - P_t(x_t)\Bigr\} \int exp\Bigl\{-M_t(x_{t-1},x_t)\Bigr\} dx_{t-1} \\
+= \eta_1\ exp \Bigl\{ - P_t(x_t)\Bigr\} * det(2 \pi \Phi_t)^{\frac{1}{2}} \hfill \text{(by Eq. \ref{eqLtInt1})} \\
+= \eta_2\ exp \Bigl\{ - P_t(x_t)\Bigr\} \hfill
 \end{multline}
 
 Notice that the \(det(2 \pi \Phi_t)^{\frac{1}{2}}\) term was absorbed into the normalizing constant \(\eta_2\), since it is a constant with respect to \(x_t\).
 
-Because \(P_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma \ref{lemmaHessianInverse} (based on Eq. \ref{belBarPartialDecomp} and \ref{eqDefNt}). So we know that the mean and covariance of the normal distribution representing \(\overline{\bel}(x_t)\) will be equal to the extremum of \(P_t\), and the inverse of its second derivative. We will now compute these values.
+Because \(P_t(x_t)\) is quadratic, \(\overline{\bel}(x_t)\) now satisfies Lemma \ref{lemmaHessianInverse} (based on Eq. \ref{belBarPartialDecomp} and \ref{eqDefPt}). So we know that the mean and covariance of the normal distribution representing \(\overline{\bel}(x_t)\) will be equal to the extremum of \(P_t\), and the inverse of its second derivative. We will now compute these values.
 
 \begin{multline*}
 \frac{\partial P_t}{\partial x_t} = \frac{\partial [\frac{1}{2} x_t^T R_t^{-1}x_t]}{\partial x_t} + \frac{\partial [\frac{1}{2} x_t^TR_t^{-1}(-g(\mu_{t-1})+G_t\mu_{t-1})]}{\partial x_t} \\
@@ -456,12 +434,12 @@ We are halfway done! The next line of Bayes filter is the update step, which upd
 \bel(x_t) = \eta p(z_t \mathbin{\vert} x_t) \overline{\bel}(x_t)
 \]
 
-As before, let the underlying model of the measurement PDF be given by \[z_t =  h(x_t) + \delta_t\] where \(h: \mathbb{R}^n \to \mathbb{R}^k\) is an arbitrary function, and \(\delta_t\) is a random vector of normal distribution with mean 0 and covariance matrix \(Q_t\).
+As before, let the underlying model of the measurement PDF be given by \[z_t =  h(x_t) + \delta_t\] where \(h: \mathbb{R}^n \to \mathbb{R}^k\) is an arbitrary function, and \(\delta_t\)'s are independent and identically distributed random vectors of normal distribution, with mean 0 and covariance matrix \(Q_t\).
 
 Then we will once again use a first-order Taylor series expansion to approximate \(h\), only now we will expand around our new best estimate of the robot's state: \(\overline{\mu_t}\).
 \begin{multline*}
-h(x_t) \approx h(\overline{\mu_t}) + \frac{\partial h(\overline{\mu_t})}{\partial x_{t-1}} (x_t - \overline{\mu_t}) \\
-= h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}) \hfill
+h(x_t) = h(\overline{\mu_t}) + \frac{\partial h(\overline{\mu_t})}{\partial x_{t-1}} (x_t - \overline{\mu_t}) + O((x_t - \overline{\mu_t})^2) \\
+\approx h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}) \hfill
 \end{multline*}
 where \[
 H_t = \begin{bmatrix} 
@@ -473,8 +451,8 @@ H_t = \begin{bmatrix}
 Then in the same manner as we did with the state transition PDF, we can calculate the mean of the measurement PDF \(E[Z_t]\) to be \(h(\overline{\mu_t}) + H_t (X_t - \overline{\mu_t})\), with covariance matrix \(Q_t\). Thus the measurement PDF has the form \[p(z_t \mathbin{\vert} x_t)  \approx N(z_t;h(\overline{\mu_t}) + H_t (x_t - \overline{\mu_t}),Q_t)\] Note that just as before, the covariance matrix \(Q_t\) is symmetric by definition. Now we can rewrite the update step using the normal distribution definitions.
 \begin{multline*}
 \bel(x_t) = \eta_1\ p(z_t \mathbin{\vert} x_t) \overline{\bel}(x_t) \\
-\approx \eta_1\ det(2 \pi Q_t)^{-\frac{1}{2}} det(2 \pi \overline{\Sigma_t})^{-\frac{1}{2}} exp\{-\frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T \\ * Q_t^{-1} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))\} * exp \{-\frac{1}{2} (x_t - \overline{\mu_t})^T \overline{\Sigma_t}^{-1} (x_t - \overline{\mu_t}) \} \\
-= \eta_2\ exp\{-J_t\} \hfill
+\approx \eta_1\ det(2 \pi Q_t)^{-\frac{1}{2}} det(2 \pi \overline{\Sigma_t})^{-\frac{1}{2}} exp\Bigl\{-\frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T \\ * Q_t^{-1} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))\Bigr\} * exp \Bigl\{-\frac{1}{2} (x_t - \overline{\mu_t})^T \overline{\Sigma_t}^{-1} (x_t - \overline{\mu_t}) \Bigr\} \\
+= \eta_2\ exp\bigl\{-J_t\bigr\} \hfill
 \end{multline*} where \[
 J_t = \frac{1}{2} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t}))^T Q_t^{-1} (z_t - h(\overline{\mu_t}) - H_t (x_t - \overline{\mu_t})) \\
 + \frac{1}{2} (x_t - \overline{\mu_t})^T \overline{\Sigma_t}^{-1} (x_t - \overline{\mu_t})
@@ -577,9 +555,9 @@ In total the EKF algorithm has a computational complexity of \(max\)(O(\(n^{2.8}
 
 It is important to note that several assumptions made in the derivation are unlikely to be completely true in reality.
 
-We assumed that all PDFs were represented by normal distributions, meaning they are unimodal. For many sensor measurements, this makes sense: the reported measurement is the unimodal mean of the measurement PDF, and the estimated noise of that measurement is encoded in the covariance matrix. However, in situations in which there are two or more equally likely states, the belief distribution is poorly approximated by a unimodal distribution.sz
+We assumed that all PDFs were represented by normal distributions, meaning they are unimodal. For many sensor measurements, this makes sense: the reported measurement is the unimodal mean of the measurement PDF, and the estimated noise of that measurement is encoded in the covariance matrix. However, in situations in which there are two or more equally likely states, the belief distribution is poorly approximated by a unimodal distribution.
 
-We also used a first-order Taylor expansion to linearize the state transition and measurement models. If either \(g\) or \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF gives appreciable results in real-time. 
+We also used a first-order Taylor expansion to linearize the state transition and measurement models. If either \(g\) or \(h\) are extremely nonlinear, then the filter may experience large errors. However in practice, the EKF used in this project gave reasonable results in real-time. 
 
 %All noise was assumed to be normally distributed with mean zero. If there are unmodeled system dynamics - as is often the case in the real world - then their effect can be encapsulated in state transition noise, as long as the effects are roughly linear
 
